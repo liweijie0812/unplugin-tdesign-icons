@@ -2,10 +2,12 @@ import { createUnplugin } from 'unplugin'
 import { unpluginFactory } from './core'
 
 /**
- * Rollup plugin entry.
+ * Rollup plugin entry (unplugin-icons style).
  *
  * ```ts
- * import TdesignIcons from 'unplugin-tdesign-icons/rollup'
+ * import Icons from 'unplugin-tdesign-icons/rollup'
+ *
+ * export default { plugins: [Icons()] }
  * ```
  */
 const rollup = createUnplugin(unpluginFactory).rollup

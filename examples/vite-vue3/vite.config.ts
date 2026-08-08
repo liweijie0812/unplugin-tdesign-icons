@@ -1,6 +1,7 @@
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
-import TDesignIconsVueNext from 'unplugin-tdesign-icons/TDesignIconsVueNext'
+// unplugin-icons 风格：`/vite` 子路径的默认导出就是插件工厂，直接 `Icons()` 调用
+import Icons from 'unplugin-tdesign-icons/vite'
 
 export default defineConfig({
   server: {
@@ -13,6 +14,6 @@ export default defineConfig({
     vue(),
     // Rewrite `import { CloseIcon } from 'tdesign-icons-vue-next'` into the
     // deep import of the single icon module at build time.
-    TDesignIconsVueNext.vite(),
+    Icons({ framework: 'vue-next' }),
   ],
 })

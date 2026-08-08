@@ -1,5 +1,6 @@
 import { build } from 'esbuild'
-import TDesignIconsReact from 'unplugin-tdesign-icons/TDesignIconsReact'
+// unplugin-icons 风格：`/esbuild` 子路径的默认导出就是插件工厂，直接 `Icons()` 调用
+import Icons from 'unplugin-tdesign-icons/esbuild'
 
 await build({
   entryPoints: ['src/main.tsx'],
@@ -11,5 +12,5 @@ await build({
   external: ['react', 'react-dom'],
   // Rewrite `import { CloseIcon } from 'tdesign-icons-react'` into the
   // deep import of the single icon module at build time.
-  plugins: [TDesignIconsReact.esbuild()],
+  plugins: [Icons({ framework: 'react' })],
 })
