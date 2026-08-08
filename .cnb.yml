@@ -1,0 +1,27 @@
+$:
+  push:
+    - name: test-and-build
+      docker:
+        image: node:20
+      stages:
+        - name: install
+          script: npm ci
+        - name: test
+          script: npm test
+        - name: typecheck
+          script: npm run typecheck
+        - name: build
+          script: npm run build
+  pull_request:
+    - name: test-and-build
+      docker:
+        image: node:20
+      stages:
+        - name: install
+          script: npm ci
+        - name: test
+          script: npm test
+        - name: typecheck
+          script: npm run typecheck
+        - name: build
+          script: npm run build
