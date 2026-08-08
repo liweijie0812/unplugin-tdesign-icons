@@ -133,7 +133,7 @@ build({ plugins: [TDesignIconsVueNext.esbuild()] })
 
 ## 示例（Examples）
 
-参考 unplugin-icons，本仓库在 [`examples/`](./examples) 提供了可直接运行的示例工程，覆盖 Vue 2 / Vue 3 / React / Web Components 与 Vite / Webpack 等主流组合：
+参考 unplugin-icons，本仓库在 [`examples/`](./examples) 提供了可直接运行的示例工程，覆盖 Vue 2 / Vue 3 / React / Web Components 与 Vite / Webpack / Rollup / Rolldown / Rspack / esbuild 等主流组合：
 
 | 示例 | 说明 |
 | --- | --- |
@@ -142,6 +142,10 @@ build({ plugins: [TDesignIconsVueNext.esbuild()] })
 | [`examples/vite-react`](./examples/vite-react) | Vite + React，`unplugin-tdesign-icons/TDesignIconsReact` |
 | [`examples/vite-web-components`](./examples/vite-web-components) | Vite + Web Components，`unplugin-tdesign-icons/TDesignIconsWebComponents` |
 | [`examples/webpack-vue3`](./examples/webpack-vue3) | Webpack 5 + Vue 3，`unplugin-tdesign-icons/TDesignIconsVueNext`（CJS） |
+| [`examples/rollup-react`](./examples/rollup-react) | Rollup + React，`unplugin-tdesign-icons/TDesignIconsReact` |
+| [`examples/rolldown-react`](./examples/rolldown-react) | Rolldown + React，`unplugin-tdesign-icons/TDesignIconsReact` |
+| [`examples/rspack-react`](./examples/rspack-react) | Rspack + React，`unplugin-tdesign-icons/TDesignIconsReact` |
+| [`examples/esbuild-react`](./examples/esbuild-react) | esbuild + React，`unplugin-tdesign-icons/TDesignIconsReact` |
 
 每个示例都可以 `npm install && npm run dev` / `npm run build` 直接跑起来，详见 [`examples/README.md`](./examples/README.md)。
 
