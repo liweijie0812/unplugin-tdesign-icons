@@ -1,0 +1,19 @@
+{
+  "name": "unplugin-tdesign-icons-example-vite-web-components",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "unplugin-tdesign-icons + Web Components (Vite)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "tdesign-icons-web-components": "^0.3.7",
+    "unplugin-tdesign-icons": "file:../.."
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}

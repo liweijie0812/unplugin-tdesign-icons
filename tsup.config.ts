@@ -2,8 +2,10 @@ import { defineConfig } from 'tsup'
 
 const entries = [
   'src/index.ts',
-  'src/vue.ts',
-  'src/react.ts',
+  'src/TDesignIconsVue.ts',
+  'src/TDesignIconsVueNext.ts',
+  'src/TDesignIconsReact.ts',
+  'src/TDesignIconsWebComponents.ts',
   'src/vite.ts',
   'src/rollup.ts',
   'src/rolldown.ts',

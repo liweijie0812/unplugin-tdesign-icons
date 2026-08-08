@@ -13,7 +13,7 @@ const hasBarrel = (code: string) => /from\s*['"]tdesign-icons-react['"]/.test(co
 
 let plugin: any
 beforeAll(async () => {
-  plugin = (await import('../../src/react')).default
+  plugin = (await import('../../src/TDesignIconsReact')).default
 })
 
 describe('multi-bundler integration (Vite / Rollup / Rolldown / Webpack / Rspack / esbuild)', () => {
