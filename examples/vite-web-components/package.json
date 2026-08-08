@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "tdesign-icons-web-components": "^0.3.7",
-    "unplugin-tdesign-icons": "file:../.."
+    "unplugin-tdesign-icons": "workspace:*"
   },
   "devDependencies": {
     "vite": "^6.0.0"

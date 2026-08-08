@@ -1,6 +1,6 @@
 import { createRspackPlugin } from 'unplugin'
-import { unpluginFactory } from './core'
-import type { Framework, Options } from './types'
+import { unpluginFactory } from './core.ts'
+import type { Framework, Options } from './types.ts'
 
 /**
  * Build a Rspack plugin factory pre-bound to a framework.

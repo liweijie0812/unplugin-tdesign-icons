@@ -34,6 +34,11 @@ import CloseIcon from 'tdesign-icons-vue-next/esm/components/close.js'
 > corepack enable
 > pnpm install
 > ```
+>
+> 仓库根目录是 pnpm workspace（`pnpm-workspace.yaml`），`examples/*` 通过 `workspace:*` 引用本包。
+> 配合 tsdown 的 `exports.devExports`，**开发期无需先 `pnpm run build`**：`package.json` 的 `exports` 直接指向 `src/*.ts` 源码，
+> 各示例的构建配置（Vite/Rollup/Webpack 等）在 Node 侧加载插件时即可直接用源码（Node 22+ 的 type-stripping 会剥离类型），
+> 改完 `src` 保存即生效；发布时 tsdown 自动把 `exports` 写入 `publishConfig`（指向 `dist` 产物），互不影响。
 
 ```bash
 pnpm add -D unplugin-tdesign-icons

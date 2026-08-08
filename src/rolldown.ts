@@ -1,14 +1,14 @@
-import { createUnplugin } from 'unplugin'
-import { unpluginFactory } from './core'
-import type { Framework, Options } from './types'
+import { createRolldownPlugin } from 'unplugin'
+import { unpluginFactory } from './core.ts'
+import type { Framework, Options } from './types.ts'
 
 /**
  * Build a Rolldown plugin factory pre-bound to a framework.
  */
 function frameworkRolldown(framework: Framework) {
-  return /* #__PURE__ */ createUnplugin((options: Options | undefined = {}) =>
+  return /* #__PURE__ */ createRolldownPlugin((options: Options | undefined = {}) =>
     unpluginFactory({ ...options, framework: options?.framework ?? framework }),
-  ).rolldown
+  )
 }
 
 /**
@@ -25,7 +25,7 @@ export const TDesignIconsVueNext = frameworkRolldown('vue-next')
 export const TDesignIconsReact = frameworkRolldown('react')
 export const TDesignIconsWebComponents = frameworkRolldown('web-components')
 
-const rolldown = createUnplugin(unpluginFactory).rolldown
+const rolldown = createRolldownPlugin(unpluginFactory)
 
 Object.assign(rolldown, {
   TDesignIconsVue,

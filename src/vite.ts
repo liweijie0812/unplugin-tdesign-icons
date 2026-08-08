@@ -1,6 +1,6 @@
 import { createUnplugin } from 'unplugin'
-import { unpluginFactory } from './core'
-import type { Framework, Options } from './types'
+import { unpluginFactory } from './core.ts'
+import type { Framework, Options } from './types.ts'
 
 /**
  * Build a Vite plugin factory pre-bound to a framework.

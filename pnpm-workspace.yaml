@@ -3,3 +3,10 @@
 # esbuild 等依赖需要在安装时构建原生二进制，必须显式允许。
 allowBuilds:
   esbuild: true
+
+# workspace：examples 用 `workspace:*` 引用根包。
+# 这样 examples 里插件的 node_modules 是 symlink（realpath 指向根目录，不在
+# node_modules 下），Node 22 的 type-stripping 可直接加载 src/*.ts 源码，
+# 配合 tsdown `exports.devExports` 实现「不 build 也能本地联调」。
+packages:
+  - 'examples/*'
