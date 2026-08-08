@@ -1,0 +1,41 @@
+.app {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+.hint {
+  color: #666;
+  margin-bottom: 2rem;
+}
+.icons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+.icon-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 8%);
+  font-size: 0.8rem;
+  color: #666;
+}
+.icon-card svg {
+  width: 2em;
+  height: 2em;
+}
+.btn {
+  padding: 0.6rem 1.4rem;
+  border: none;
+  border-radius: 8px;
+  background: #0052d9;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+}
