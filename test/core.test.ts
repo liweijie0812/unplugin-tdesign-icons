@@ -130,4 +130,38 @@ import { CloseIcon } from 'tdesign-icons-vue-next'
     expect(out).toContain(`import { IconBase } from 'tdesign-icons-react'`)
     expect(out).toContain(`import CloseIcon from 'tdesign-icons-react/esm/components/close.js'`)
   })
+
+  it('keeps `import type` statements untouched (type imports must not become value imports)', async () => {
+    const code = `import type { CloseIcon } from 'tdesign-icons-react'`
+    expect(await runTransform(code, 'react')).toBeNull()
+  })
+
+  it('keeps `import { type X }` inline type specifiers untouched', async () => {
+    const code = `import { type CloseIcon } from 'tdesign-icons-react'`
+    expect(await runTransform(code, 'react')).toBeNull()
+  })
+
+  it('keeps `export type { X } from` re-exports untouched', async () => {
+    const code = `export type { CloseIcon } from 'tdesign-icons-react'`
+    expect(await runTransform(code, 'react')).toBeNull()
+  })
+
+  it('preserves re-export semantics for `export { X } from`', async () => {
+    const code = `export { CloseIcon } from 'tdesign-icons-react'`
+    const out = await runTransform(code, 'react')
+    expect(out).toBe(`export { default as CloseIcon } from 'tdesign-icons-react/esm/components/close.js'`)
+  })
+
+  it('preserves alias in `export { X as Y } from` re-exports', async () => {
+    const code = `export { CloseIcon as Close } from 'tdesign-icons-react'`
+    const out = await runTransform(code, 'react')
+    expect(out).toBe(`export { default as Close } from 'tdesign-icons-react/esm/components/close.js'`)
+  })
+
+  it('keeps non-icon specifiers in `export { } from` re-exports', async () => {
+    const code = `export { CloseIcon, IconBase } from 'tdesign-icons-react'`
+    const out = await runTransform(code, 'react')
+    expect(out).toContain(`export { IconBase } from 'tdesign-icons-react'`)
+    expect(out).toContain(`export { default as CloseIcon } from 'tdesign-icons-react/esm/components/close.js'`)
+  })
 })

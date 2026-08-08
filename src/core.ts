@@ -60,6 +60,10 @@ export function createTransformer(config: FrameworkConfig) {
       if (stmt.n !== config.packageName) continue
 
       const statement = code.slice(stmt.start, stmt.end)
+      // `export { X } from 'pkg'` is a re-export (also reported by the lexer as
+      // an import); it must keep the `export` keyword, otherwise the module
+      // silently stops re-exporting the icon.
+      const isReExport = /^export\b/.test(statement)
       // Collect `{ ... }` named specifiers from the import statement
       const specifierMatch = statement.match(/\{([\s\S]*)\}/)
       if (!specifierMatch) continue
@@ -69,7 +73,13 @@ export function createTransformer(config: FrameworkConfig) {
         .map((n) => n.trim())
         .filter(Boolean)
 
-      const iconImports: string[] = []
+      // Type-only specifiers (`import type { X }`, `import { type X }`,
+      // `export type { X }`) must be kept as-is — the deep module is a JS
+      // value module, rewriting it into a value import/export would change TS
+      // semantics and can break under `isolatedModules`.
+      if (/^import\s+type\b|^export\s+type\b|\btype\s+[A-Za-z_$]/.test(statement)) continue
+
+      const iconSpecs: { original: string; local: string; stem: string }[] = []
       const barrelSpecifiers: string[] = []
       for (const name of specifiers) {
         const [original, alias] = name.split(/\s+as\s+/)
@@ -78,21 +88,35 @@ export function createTransformer(config: FrameworkConfig) {
           barrelSpecifiers.push(name)
           continue
         }
-        const stem = map.get(original)!
-        iconImports.push(
-          `import ${local} from '${config.packageName}/${config.componentDir}/${stem}.js'`,
-        )
+        iconSpecs.push({ original, local, stem: map.get(original)! })
       }
 
-      if (!iconImports.length) continue
+      if (!iconSpecs.length) continue
 
-      const replacement = barrelSpecifiers.length
-        ? [
-            `import { ${barrelSpecifiers.join(', ')} } from '${config.packageName}'`,
-            ...iconImports,
-          ].join('\n')
-        : iconImports.join('\n')
-      s.overwrite(stmt.start, stmt.end, replacement)
+      const lines: string[] = []
+      if (isReExport) {
+        // Keep the remaining barrel specifiers as a re-export, then rewrite
+        // each icon into a deep re-export (`export { default as X } from ...`)
+        // so the module keeps exporting the icon under the same name.
+        if (barrelSpecifiers.length) {
+          lines.push(`export { ${barrelSpecifiers.join(', ')} } from '${config.packageName}'`)
+        }
+        for (const { local, stem } of iconSpecs) {
+          lines.push(
+            `export { default as ${local} } from '${config.packageName}/${config.componentDir}/${stem}.js'`,
+          )
+        }
+      } else {
+        if (barrelSpecifiers.length) {
+          lines.push(`import { ${barrelSpecifiers.join(', ')} } from '${config.packageName}'`)
+        }
+        for (const { local, stem } of iconSpecs) {
+          lines.push(
+            `import ${local} from '${config.packageName}/${config.componentDir}/${stem}.js'`,
+          )
+        }
+      }
+      s.overwrite(stmt.start, stmt.end, lines.join('\n'))
       changed = true
     }
 
