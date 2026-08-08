@@ -30,3 +30,31 @@ describe('vite integration', () => {
     expect(chunks.length).toBeLessThan(5)
   })
 })
+
+describe('vite integration — localIcons (offline <Icon name>)', () => {
+  it('rewrites <Icon name="xxx" /> to deep components and bundles SVG locally (no CDN)', async () => {
+    const localEntry = path.resolve(__dirname, 'fixtures/local-icons.tsx')
+    const result = await build({
+      root: __dirname,
+      logLevel: 'silent',
+      build: {
+        write: false,
+        minify: false,
+        rollupOptions: { input: localEntry },
+      },
+      plugins: [reactPlugin.vite({ framework: 'react', localIcons: true })],
+    })
+
+    const output = Array.isArray(result) ? result[0] : result
+    const chunks = (output as any).output.filter((o: { type: string }) => o.type === 'chunk')
+    const code = chunks.map((c: { code: string }) => c.code).join('\n')
+
+    // Sneer & unhappy icon SVG path data are bundled locally
+    expect(code).toContain('M17 10H15M9 10H7M15.5 14.5')
+    expect(code).toContain('M8.53516 16C9.22678 14.8044')
+    // No CDN svg-sprite URL is loaded at runtime
+    expect(code).not.toContain('tdesign.gtimg.com')
+    // No barrel import of the icon package remains
+    expect(code).not.toMatch(/from ['"]tdesign-icons-react['"]/)
+  })
+})

@@ -131,3 +131,142 @@ import { CloseIcon } from 'tdesign-icons-vue-next'
     expect(out).toContain(`import CloseIcon from 'tdesign-icons-react/esm/components/close.js'`)
   })
 })
+
+async function runLocalIcons(code: string, framework: Framework = 'react', id = '/project/src/App.tsx') {
+  const plugin = (unplugin.raw as any)(
+    { framework, localIcons: true },
+    { framework: 'rollup' } as any,
+  )
+  const result = (await plugin.transform.call({}, code, id)) as TransformResult
+  return result ? result.code : null
+}
+
+describe('localIcons (offline <Icon name> rewrite)', () => {
+  it('rewrites <Icon name="sneer" /> to <SneerIcon /> and injects the deep import', async () => {
+    const code = `import { Icon } from 'tdesign-icons-react'
+export const A = () => <Icon name="sneer" />`
+    const out = await runLocalIcons(code, 'react')
+    expect(out).toContain(`import SneerIcon from 'tdesign-icons-react/esm/components/sneer.js'`)
+    expect(out).toContain(`<SneerIcon />`)
+    // Barrel Icon import removed (no longer used)
+    expect(out).not.toContain(`import { Icon } from 'tdesign-icons-react'`)
+  })
+
+  it('keeps other props when rewriting', async () => {
+    const code = `import { Icon } from 'tdesign-icons-react'
+export const A = () => <Icon name="add-circle-filled" size="large" onClick={fn} />`
+    const out = await runLocalIcons(code, 'react')
+    expect(out).toContain(`<AddCircleFilledIcon size="large" onClick={fn} />`)
+  })
+
+  it('rewrites lowercase <icon> tags in vue SFC templates', async () => {
+    const code = `<template>
+  <icon name="unhappy" />
+</template>
+<script setup>
+import { Icon } from 'tdesign-icons-vue-next'
+</script>`
+    const out = await runLocalIcons(code, 'vue-next', '/project/src/App.vue')
+    expect(out).toContain(`<UnhappyIcon />`)
+    expect(out).toContain(`import UnhappyIcon from 'tdesign-icons-vue-next/esm/components/unhappy.js'`)
+    // Injected inside the <script> block
+    expect(out!.indexOf('import UnhappyIcon')).toBeGreaterThan(out!.indexOf('<script'))
+  })
+
+  it('rewrites paired (non-self-closing) tags and their closing tag', async () => {
+    const code = `import { Icon } from 'tdesign-icons-react'
+export const A = () => <Icon name="sneer">child</Icon>`
+    const out = await runLocalIcons(code, 'react')
+    expect(out).toContain(`<SneerIcon>child</SneerIcon>`)
+  })
+
+  it('leaves dynamic :name / name={expr} usages untouched and keeps Icon import', async () => {
+    const code = `import { Icon } from 'tdesign-icons-react'
+export const A = ({ n }) => <Icon name={n} />`
+    const out = await runLocalIcons(code, 'react')
+    expect(out).toBeNull()
+  })
+
+  it('leaves unknown icon names untouched', async () => {
+    const code = `import { Icon } from 'tdesign-icons-react'
+export const A = () => <Icon name="not-an-icon" />`
+    const out = await runLocalIcons(code, 'react')
+    expect(out).toBeNull()
+  })
+
+  it('supports aliased Icon imports (Icon as TIcon)', async () => {
+    const code = `import { Icon as TIcon } from 'tdesign-icons-vue-next'
+<template><TIcon name="sneer" /></template>`
+    const out = await runLocalIcons(code, 'vue-next', '/project/src/App.vue')
+    expect(out).toContain(`<SneerIcon />`)
+    expect(out).toContain(`import SneerIcon from 'tdesign-icons-vue-next/esm/components/sneer.js'`)
+  })
+
+  it('keeps Icon import when mixed with non-convertible usage', async () => {
+    const code = `import { Icon } from 'tdesign-icons-react'
+export const A = ({ n }) => <div><Icon name="sneer" /><Icon name={n} /></div>`
+    const out = await runLocalIcons(code, 'react')
+    expect(out).toContain(`<SneerIcon />`)
+    expect(out).toContain(`import { Icon } from 'tdesign-icons-react'`)
+  })
+
+  it('does not touch Icon when localIcons is disabled', async () => {
+    const code = `import { Icon } from 'tdesign-icons-react'
+export const A = () => <Icon name="sneer" />`
+    const plugin = (unplugin.raw as any)({ framework: 'react' }, { framework: 'rollup' } as any)
+    const result = (await plugin.transform.call({}, code, '/project/src/App.tsx')) as TransformResult
+    expect(result).toBeNull()
+  })
+
+  it('web-components <t-icon> is already offline and untouched', async () => {
+    const code = `import { Icon } from 'tdesign-icons-web-components'
+const el = document.createElement('t-icon')
+el.setAttribute('name', 'sneer')`
+    const out = await runLocalIcons(code, 'web-components', '/project/src/app.js')
+    expect(out).toBeNull()
+  })
+
+  it('merges with existing icon imports and dedupes', async () => {
+    const code = `import { Icon, CloseIcon } from 'tdesign-icons-react'
+export const A = () => <div><Icon name="sneer" /><CloseIcon /></div>`
+    const out = await runLocalIcons(code, 'react')
+    expect(out).toContain(`import CloseIcon from 'tdesign-icons-react/esm/components/close.js'`)
+    expect(out).toContain(`import SneerIcon from 'tdesign-icons-react/esm/components/sneer.js'`)
+    expect(out).toContain(`<SneerIcon />`)
+    expect(out).not.toContain(`import { Icon } from 'tdesign-icons-react'`)
+  })
+})
+
+describe('localIcons string/comment safety', () => {
+  it('does not rewrite <Icon> inside a JS string literal', async () => {
+    const code = `import { Icon } from 'tdesign-icons-react'
+const s = '<Icon name="sneer" />'
+export const A = () => <div>{s}</div>`
+    const out = await runLocalIcons(code, 'react')
+    expect(out).toBeNull()
+  })
+
+  it('does not rewrite <Icon> inside a comment', async () => {
+    const code = `import { Icon } from 'tdesign-icons-react'
+// <Icon name="sneer" />
+/* <Icon name="sneer" /> */
+export const A = () => <Icon name="sneer" />`
+    const out = await runLocalIcons(code, 'react')
+    expect(out).toContain(`<SneerIcon />`)
+    expect(out).toContain(`// <Icon name="sneer" />`)
+    expect(out).toContain(`/* <Icon name="sneer" /> */`)
+  })
+
+  it('does not rewrite <icon> inside vue template interpolation string', async () => {
+    const code = `<template>
+  <Icon name="sneer" />
+  <p>{{ '<Icon name="sneer" />' }}</p>
+</template>
+<script setup>
+import { Icon } from 'tdesign-icons-vue-next'
+</script>`
+    const out = await runLocalIcons(code, 'vue-next', '/project/src/App.vue')
+    expect(out).toContain(`<SneerIcon />`)
+    expect(out).toContain(`{{ '<Icon name="sneer" />' }}`)
+  })
+})

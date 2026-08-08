@@ -318,17 +318,68 @@ export default defineConfig({ plugins: [TDesignIconsVueNext.vite()] })
 | --- | --- | --- | --- |
 | `framework` | `'vue' \| 'vue-next' \| 'react' \| 'web-components'` | `'vue-next'` | 要优化的图标包 |
 | `packageName` | `string` | 按 framework | 覆盖图标包名（如使用别名时） |
+| `localIcons` | `boolean` | `false` | 把 `<Icon name="xxx" />` 在编译期改写为对应单图标组件 `<XxxIcon />`，离线渲染、不再请求 CDN svg-sprite |
 | `includeSource` | `string[]` | `[]` | 只处理路径包含这些片段的文件 |
 | `exclude` | `(string \| RegExp)[]` | `[/node_modules/]` | 跳过的路径 |
 
 > 直接使用主入口 `unplugin-tdesign-icons`（其默认导出同样是插件工厂，可 `Icons(options)` 调用）时必须用 `framework` 选项指定目标包。
+
+## 无网络环境：`localIcons` 开关
+
+默认情况下，TDesign 的 `<Icon name="xxx" />` 组件（svg-sprite 版）会在运行时从 CDN
+（`https://tdesign.gtimg.com/...`）拉取全量图标 sprite。在内网 / 离线 / 构建机无外网等场景下，图标会渲染不出来。
+
+开启 `localIcons: true` 后，插件会在**编译期**把 `<Icon name="xxx" />` 改写为对应的单图标深层组件 `<XxxIcon />`，
+同时自动注入 `import XxxIcon from 'tdesign-icons-xxx/esm/components/xxx.js'`。这样图标数据直接打进产物，**完全离线渲染**，不再请求任何 CDN：
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite'
+import { TDesignIconsVueNext } from 'unplugin-tdesign-icons/vite'
+
+export default defineConfig({
+  plugins: [
+    TDesignIconsVueNext({ localIcons: true }),
+  ],
+})
+```
+
+```vue
+<!-- 源码写法不变，构建时被改写为 <SneerIcon /> -->
+<template>
+  <Icon name="sneer" />
+  <Icon name="unhappy" />
+</template>
+<script setup>
+import { Icon } from 'tdesign-icons-vue-next'
+</script>
+```
+
+构建后等价于：
+
+```vue
+<template>
+  <SneerIcon />
+  <UnhappyIcon />
+</template>
+<script setup>
+import SneerIcon from 'tdesign-icons-vue-next/esm/components/sneer.js'
+import UnhappyIcon from 'tdesign-icons-vue-next/esm/components/unhappy.js'
+</script>
+```
+
+> - 支持 Vue 2 / Vue 3 / React 的 `<Icon name="xxx" />` 写法（含 `<icon>`、kebab-case 别名如 `import { Icon as MyIcon }` → `<my-icon>` 等）。
+> - 仅改写**静态字符串** `name`；`name={动态变量}` / `:name="动态变量"` 无法静态确定图标，会保留原 `<Icon>` 与 CDN 加载逻辑。
+> - 字符串 / 注释中的 `<Icon ...>` 文本不会被误改（基于字符串掩码扫描）。
+> - Web Components 的 `<t-icon name="xxx" />` 本身就使用本地 JSON 渲染、不依赖 CDN，无需开启。
 
 ## 工作原理
 
 1. 用 `es-module-lexer` 精确解析出代码中所有 `import { ... } from 'tdesign-icons-xxx'` 语句；
 2. 从图标包内置的 `esm/manifest.js` 构建 `导出名 → 文件名(stem)` 映射（`导出名 = manifest.icon + 'Icon'`）；
 3. 把命中的具名导入改写为 `import XxxIcon from 'tdesign-icons-xxx/esm/components/xxx.js'`；
-4. 同一语句中的非图标导入（如 `IconBase`、`IconFont`）保留原桶导入。
+4. 同一语句中的非图标导入（如 `IconBase`、`IconFont`）保留原桶导入；
+5. 开启 `localIcons` 时，额外把 `<Icon name="xxx" />` 改写为对应的深层单图标组件 `<XxxIcon />`。
 
 > ⚠️ 改写后的深层导入带 `.js` 后缀，Node/SSR/严格 ESM 环境下也能正常解析。
 

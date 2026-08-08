@@ -12,6 +12,9 @@ import {
   TimeIcon,
   UserIcon,
 } from 'tdesign-icons-vue-next'
+// 开启 localIcons 后，下面的 `<Icon name="sneer" />` 会被插件改写为
+// `<SneerIcon />`，无需从 CDN 拉取 svg-sprite，离线也能渲染。
+import { Icon } from 'tdesign-icons-vue-next'
 
 const count = ref(0)
 </script>
@@ -31,6 +34,8 @@ const count = ref(0)
       <div class="icon-card"><SearchIcon /><span>SearchIcon</span></div>
       <div class="icon-card"><TimeIcon /><span>TimeIcon</span></div>
       <div class="icon-card"><UserIcon /><span>UserIcon</span></div>
+      <!-- localIcons 演示：构建时改写为 <SneerIcon />，离线渲染 -->
+      <div class="icon-card"><Icon name="sneer" /><span>Icon name="sneer"</span></div>
     </div>
 
     <button class="btn" type="button" @click="count++">
