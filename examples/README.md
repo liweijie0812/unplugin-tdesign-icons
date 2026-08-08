@@ -14,17 +14,18 @@
 
 ```bash
 # 先构建一次插件本体（examples 通过 file: ../.. 引用根包）
-cd ../.. && npm install && npm run build && cd -
+cd ../.. && pnpm install && pnpm run build && cd -
 
 # 进入任一示例
 cd vite-vue3
-npm install
-npm run dev     # 开发模式
-npm run build   # 生产构建
+pnpm install
+pnpm run dev     # 开发模式
+pnpm run build   # 生产构建
 ```
 
 > 示例的 `package.json` 通过 `"unplugin-tdesign-icons": "file:../.."` 直接引用仓库根目录，
-> 因此修改插件源码后需先在根目录重新 `npm run build` 生成 `dist/`。
+> 因此修改插件源码后需先在根目录重新 `pnpm run build` 生成 `dist/`。
+> 包管理器统一使用 pnpm（corepack 管理版本）。
 
 ## 每个示例展示什么
 

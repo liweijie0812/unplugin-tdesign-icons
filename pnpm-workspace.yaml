@@ -1,0 +1,5 @@
+# pnpm 11 配置
+# allowBuilds：允许指定依赖执行安装脚本（v11 取代了旧版 onlyBuiltDependencies）。
+# esbuild 等依赖需要在安装时构建原生二进制，必须显式允许。
+allowBuilds:
+  esbuild: true

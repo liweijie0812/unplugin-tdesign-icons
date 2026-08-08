@@ -28,13 +28,20 @@ import CloseIcon from 'tdesign-icons-vue-next/esm/components/close.js'
 
 ## 安装
 
+> 本仓库使用 [pnpm](https://pnpm.io) 作为包管理器（根目录 `package.json` 声明了 `packageManager`），本地开发请先启用对应版本：
+>
+> ```bash
+> corepack enable
+> pnpm install
+> ```
+
 ```bash
-npm i -D unplugin-tdesign-icons
+pnpm add -D unplugin-tdesign-icons
 # 按需安装对应图标包
-npm i tdesign-icons-vue-next   # Vue 3
-npm i tdesign-icons-vue        # Vue 2
-npm i tdesign-icons-react      # React
-npm i tdesign-icons-web-components  # Web Components
+pnpm add tdesign-icons-vue-next   # Vue 3
+pnpm add tdesign-icons-vue        # Vue 2
+pnpm add tdesign-icons-react      # React
+pnpm add tdesign-icons-web-components  # Web Components
 ```
 
 ## 使用
@@ -143,7 +150,7 @@ build({ plugins: [TDesignIconsVueNext.esbuild()] })
 | [`examples/vite-web-components`](./examples/vite-web-components) | Vite + Web Components，`unplugin-tdesign-icons/TDesignIconsWebComponents` |
 | [`examples/webpack-vue3`](./examples/webpack-vue3) | Webpack 5 + Vue 3，`unplugin-tdesign-icons/TDesignIconsVueNext`（CJS） |
 
-每个示例都可以 `npm install && npm run dev` / `npm run build` 直接跑起来，详见 [`examples/README.md`](./examples/README.md)。
+每个示例都可以 `pnpm install && pnpm run dev` / `pnpm run build` 直接跑起来，详见 [`examples/README.md`](./examples/README.md)。
 
 ## 验证
 
