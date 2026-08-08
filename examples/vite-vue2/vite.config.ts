@@ -1,6 +1,7 @@
 import vue2 from '@vitejs/plugin-vue2'
 import { defineConfig } from 'vite'
-import TDesignIconsVue from 'unplugin-tdesign-icons/TDesignIconsVue'
+// 按框架从 `/vite` 子路径具名导入插件工厂，直接 `TDesignIconsVue()` 调用
+import { TDesignIconsVue } from 'unplugin-tdesign-icons/vite'
 
 export default defineConfig({
   server: {
@@ -13,6 +14,6 @@ export default defineConfig({
     vue2(),
     // Rewrite `import { CloseIcon } from 'tdesign-icons-vue'` into the
     // deep import of the single icon module at build time.
-    TDesignIconsVue.vite(),
+    TDesignIconsVue(),
   ],
 })

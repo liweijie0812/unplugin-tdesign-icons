@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
-import TDesignIconsWebComponents from 'unplugin-tdesign-icons/TDesignIconsWebComponents'
+// 按框架从 `/vite` 子路径具名导入插件工厂，直接 `TDesignIconsWebComponents()` 调用
+import { TDesignIconsWebComponents } from 'unplugin-tdesign-icons/vite'
 
 export default defineConfig({
   server: {
@@ -9,8 +10,8 @@ export default defineConfig({
     allowedHosts: true,
   },
   plugins: [
-    // Rewrite `import { CloseIcon } from 'tdesign-icons-web-components'` into the
+    // Rewrite `import { XxxIcon } from 'tdesign-icons-web-components'` into the
     // deep import of the single icon module at build time.
-    TDesignIconsWebComponents.vite(),
+    TDesignIconsWebComponents(),
   ],
 })

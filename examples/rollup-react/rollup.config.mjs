@@ -1,7 +1,8 @@
 import { defineConfig } from 'rollup'
 import esbuild from 'rollup-plugin-esbuild'
 import nodeResolve from '@rollup/plugin-node-resolve'
-import TDesignIconsReact from 'unplugin-tdesign-icons/TDesignIconsReact'
+// 按框架从 `/rollup` 子路径具名导入插件工厂，直接 `TDesignIconsReact()` 调用
+import { TDesignIconsReact } from 'unplugin-tdesign-icons/rollup'
 
 export default defineConfig({
   input: 'src/main.tsx',
@@ -15,7 +16,7 @@ export default defineConfig({
     nodeResolve({ extensions: ['.tsx', '.ts', '.js', '.mjs'] }),
     // Rewrite `import { CloseIcon } from 'tdesign-icons-react'` into the
     // deep import of the single icon module at build time.
-    TDesignIconsReact.rollup(),
+    TDesignIconsReact(),
   ],
   external: [/^react/, /^react-dom/],
 })

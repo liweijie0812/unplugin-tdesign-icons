@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
-import TDesignIconsReact from 'unplugin-tdesign-icons/TDesignIconsReact'
+// 按框架从 `/vite` 子路径具名导入插件工厂，直接 `TDesignIconsReact()` 调用
+import { TDesignIconsReact } from 'unplugin-tdesign-icons/vite'
 
 export default defineConfig({
   server: {
@@ -13,6 +14,6 @@ export default defineConfig({
     react(),
     // Rewrite `import { CloseIcon } from 'tdesign-icons-react'` into the
     // deep import of the single icon module at build time.
-    TDesignIconsReact.vite(),
+    TDesignIconsReact(),
   ],
 })
