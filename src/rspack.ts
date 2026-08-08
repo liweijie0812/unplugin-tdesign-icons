@@ -1,14 +1,36 @@
 import { createRspackPlugin } from 'unplugin'
 import { unpluginFactory } from './core'
+import type { Framework, Options } from './types'
 
 /**
- * Rspack plugin entry.
+ * Build a Rspack plugin factory pre-bound to a framework.
+ */
+function frameworkRspack(framework: Framework) {
+  return /* #__PURE__ */ createRspackPlugin((options: Options | undefined = {}) =>
+    unpluginFactory({ ...options, framework: options?.framework ?? framework }),
+  )
+}
+
+/**
+ * Framework-specific Rspack plugin factories.
  *
  * ```js
- * const TdesignIcons = require('unplugin-tdesign-icons/rspack')
+ * const { TDesignIconsReact } = require('unplugin-tdesign-icons/rspack')
  * ```
  */
+export const TDesignIconsVue = frameworkRspack('vue')
+export const TDesignIconsVueNext = frameworkRspack('vue-next')
+export const TDesignIconsReact = frameworkRspack('react')
+export const TDesignIconsWebComponents = frameworkRspack('web-components')
+
 const rspack = createRspackPlugin(unpluginFactory)
+
+Object.assign(rspack, {
+  TDesignIconsVue,
+  TDesignIconsVueNext,
+  TDesignIconsReact,
+  TDesignIconsWebComponents,
+})
 
 export default rspack
 export { rspack as 'module.exports' }

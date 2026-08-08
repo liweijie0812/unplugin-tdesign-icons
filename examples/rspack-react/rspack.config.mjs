@@ -1,6 +1,6 @@
 import { rspack } from '@rspack/core'
-// unplugin-icons 风格：`/rspack` 子路径的默认导出就是插件工厂，直接 `Icons()` 调用
-import Icons from 'unplugin-tdesign-icons/rspack'
+// 按框架从 `/rspack` 子路径具名导入插件工厂，直接 `TDesignIconsReact()` 调用
+import { TDesignIconsReact } from 'unplugin-tdesign-icons/rspack'
 
 export default {
   mode: 'production',
@@ -32,6 +32,6 @@ export default {
   },
   plugins: [
     // 把 `import { XxxIcon } from 'tdesign-icons-react'` 改写为单图标深层导入
-    Icons({ framework: 'react' }),
+    TDesignIconsReact(),
   ],
 }

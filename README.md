@@ -46,29 +46,31 @@ pnpm add tdesign-icons-web-components  # Web Components
 
 ## 使用
 
-用法与 [unplugin-icons](https://github.com/unjs/unplugin-icons) 一致：按构建工具从对应的子路径导入插件工厂，然后以 `Icons(options)` 方式直接调用（无需 `.vite()` 等后缀）。
+按构建工具从对应子路径导入**框架对应的插件工厂**，然后直接调用即可（无需 `.vite()` 等后缀）：
 
 ```ts
 // vite.config.ts
-import Icons from 'unplugin-tdesign-icons/vite'
+import { TDesignIconsVueNext } from 'unplugin-tdesign-icons/vite'
 
 export default defineConfig({
   plugins: [
-    Icons({ framework: 'vue-next' /* options */ }),
+    TDesignIconsVueNext({ /* options */ }),
   ],
 })
 ```
 
 ```js
 // rollup.config.js
-import Icons from 'unplugin-tdesign-icons/rollup'
+import { TDesignIconsReact } from 'unplugin-tdesign-icons/rollup'
 
 export default {
   plugins: [
-    Icons({ framework: 'react' /* options */ }),
+    TDesignIconsReact({ /* options */ }),
   ],
 }
 ```
+
+每个构建工具子路径都导出四个框架工厂：`TDesignIconsVue` / `TDesignIconsVueNext` / `TDesignIconsReact` / `TDesignIconsWebComponents`，已固定对应框架，无需再传 `framework`。
 
 > 只需在构建工具配置里启用一次插件，源码里的 `import { XxxIcon } from 'tdesign-icons-xxx'` 会在编译期被自动改写为单图标深层导入。
 
@@ -76,12 +78,14 @@ export default {
 
 | 构建工具 | 导入 | 示例 |
 | --- | --- | --- |
-| Vite | `unplugin-tdesign-icons/vite` | `Icons()` |
-| Rollup | `unplugin-tdesign-icons/rollup` | `Icons()` |
-| Rolldown | `unplugin-tdesign-icons/rolldown` | `Icons()` |
-| Webpack | `unplugin-tdesign-icons/webpack` | `Icons()` |
-| Rspack | `unplugin-tdesign-icons/rspack` | `Icons()` |
-| esbuild | `unplugin-tdesign-icons/esbuild` | `Icons()` |
+| Vite | `unplugin-tdesign-icons/vite` | `TDesignIconsVueNext()` |
+| Rollup | `unplugin-tdesign-icons/rollup` | `TDesignIconsReact()` |
+| Rolldown | `unplugin-tdesign-icons/rolldown` | `TDesignIconsReact()` |
+| Webpack | `unplugin-tdesign-icons/webpack` | `TDesignIconsVueNext()` |
+| Rspack | `unplugin-tdesign-icons/rspack` | `TDesignIconsReact()` |
+| esbuild | `unplugin-tdesign-icons/esbuild` | `TDesignIconsReact()` |
+
+> 每个子路径也保留默认导出（通用插件工厂，需传 `framework` 指定目标包），用法与 unplugin-icons 一致：`import Icons from 'unplugin-tdesign-icons/vite'` → `Icons({ framework: 'vue-next' })`。
 
 ### Vue 3 + Vite
 
@@ -89,12 +93,12 @@ export default {
 // vite.config.ts
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import Icons from 'unplugin-tdesign-icons/vite'
+import { TDesignIconsVueNext } from 'unplugin-tdesign-icons/vite'
 
 export default defineConfig({
   plugins: [
     vue(),
-    Icons({ framework: 'vue-next' }),
+    TDesignIconsVueNext(),
   ],
 })
 ```
@@ -105,12 +109,12 @@ export default defineConfig({
 // vite.config.ts
 import { defineConfig } from 'vite'
 import vue2 from '@vitejs/plugin-vue2'
-import Icons from 'unplugin-tdesign-icons/vite'
+import { TDesignIconsVue } from 'unplugin-tdesign-icons/vite'
 
 export default defineConfig({
   plugins: [
     vue2(),
-    Icons({ framework: 'vue' }),
+    TDesignIconsVue(),
   ],
 })
 ```
@@ -121,12 +125,12 @@ export default defineConfig({
 // vite.config.ts
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import Icons from 'unplugin-tdesign-icons/vite'
+import { TDesignIconsReact } from 'unplugin-tdesign-icons/vite'
 
 export default defineConfig({
   plugins: [
     react(),
-    Icons({ framework: 'react' }),
+    TDesignIconsReact(),
   ],
 })
 ```
@@ -136,11 +140,11 @@ export default defineConfig({
 ```ts
 // vite.config.ts
 import { defineConfig } from 'vite'
-import Icons from 'unplugin-tdesign-icons/vite'
+import { TDesignIconsWebComponents } from 'unplugin-tdesign-icons/vite'
 
 export default defineConfig({
   plugins: [
-    Icons({ framework: 'web-components' }),
+    TDesignIconsWebComponents(),
   ],
 })
 ```
@@ -229,25 +233,35 @@ export default defineConfig({
 
 ```ts
 // rollup.config.js
-import Icons from 'unplugin-tdesign-icons/rollup'
-export default { plugins: [Icons({ framework: 'react' })] }
+import { TDesignIconsReact } from 'unplugin-tdesign-icons/rollup'
+export default { plugins: [TDesignIconsReact()] }
 
 // rolldown.config.js
-import Icons from 'unplugin-tdesign-icons/rolldown'
-export default { plugins: [Icons({ framework: 'react' })] }
+import { TDesignIconsReact } from 'unplugin-tdesign-icons/rolldown'
+export default { plugins: [TDesignIconsReact()] }
 
 // webpack.config.js（CJS 通过 require(esm) 互操作拿到插件工厂）
-const Icons = require('unplugin-tdesign-icons/webpack')
-module.exports = { plugins: [Icons({ framework: 'vue-next' })] }
+const { TDesignIconsVueNext } = require('unplugin-tdesign-icons/webpack')
+module.exports = { plugins: [TDesignIconsVueNext()] }
 
 // rspack.config.js
-const Icons = require('unplugin-tdesign-icons/rspack')
-module.exports = { plugins: [Icons({ framework: 'react' })] }
+const { TDesignIconsReact } = require('unplugin-tdesign-icons/rspack')
+module.exports = { plugins: [TDesignIconsReact()] }
 
 // esbuild.config.js
 import { build } from 'esbuild'
-import Icons from 'unplugin-tdesign-icons/esbuild'
-build({ plugins: [Icons({ framework: 'react' })] })
+import { TDesignIconsReact } from 'unplugin-tdesign-icons/esbuild'
+build({ plugins: [TDesignIconsReact()] })
+```
+
+### 通用工厂用法（unplugin-icons 风格）
+
+每个构建工具子路径同时保留**默认导出**：它是通用插件工厂，不预设框架，需通过 `framework` 选项指定目标包：
+
+```ts
+// vite.config.ts
+import Icons from 'unplugin-tdesign-icons/vite'
+export default defineConfig({ plugins: [Icons({ framework: 'vue-next' /* options */ })] })
 ```
 
 ### 框架分包入口（可选）
@@ -260,7 +274,7 @@ import TDesignIconsVueNext from 'unplugin-tdesign-icons/TDesignIconsVueNext'
 export default defineConfig({ plugins: [TDesignIconsVueNext.vite()] })
 ```
 
-> 框架分包入口主要为兼容旧用法而保留。新项目推荐直接使用上面的构建工具子路径 + `Icons(options)`。
+> 框架分包入口主要为兼容旧用法而保留。新项目推荐直接使用上面的构建工具子路径 + 具名框架工厂（`import { TDesignIconsVueNext } from 'unplugin-tdesign-icons/vite'`）。
 
 ## 示例（Examples）
 
@@ -268,15 +282,15 @@ export default defineConfig({ plugins: [TDesignIconsVueNext.vite()] })
 
 | 示例 | 说明 |
 | --- | --- |
-| [`examples/vite-vue3`](./examples/vite-vue3) | Vite + Vue 3，`unplugin-tdesign-icons/vite` + `framework: 'vue-next'` |
-| [`examples/vite-vue2`](./examples/vite-vue2) | Vite + Vue 2，`unplugin-tdesign-icons/vite` + `framework: 'vue'` |
-| [`examples/vite-react`](./examples/vite-react) | Vite + React，`unplugin-tdesign-icons/vite` + `framework: 'react'` |
-| [`examples/vite-web-components`](./examples/vite-web-components) | Vite + Web Components，`unplugin-tdesign-icons/vite` + `framework: 'web-components'` |
-| [`examples/webpack-vue3`](./examples/webpack-vue3) | Webpack 5 + Vue 3，`unplugin-tdesign-icons/webpack` + `framework: 'vue-next'`（CJS） |
-| [`examples/rollup-react`](./examples/rollup-react) | Rollup + React，`unplugin-tdesign-icons/rollup` + `framework: 'react'` |
-| [`examples/rolldown-react`](./examples/rolldown-react) | Rolldown + React，`unplugin-tdesign-icons/rolldown` + `framework: 'react'` |
-| [`examples/rspack-react`](./examples/rspack-react) | Rspack + React，`unplugin-tdesign-icons/rspack` + `framework: 'react'` |
-| [`examples/esbuild-react`](./examples/esbuild-react) | esbuild + React，`unplugin-tdesign-icons/esbuild` + `framework: 'react'` |
+| [`examples/vite-vue3`](./examples/vite-vue3) | Vite + Vue 3，`import { TDesignIconsVueNext } from 'unplugin-tdesign-icons/vite'` |
+| [`examples/vite-vue2`](./examples/vite-vue2) | Vite + Vue 2，`import { TDesignIconsVue } from 'unplugin-tdesign-icons/vite'` |
+| [`examples/vite-react`](./examples/vite-react) | Vite + React，`import { TDesignIconsReact } from 'unplugin-tdesign-icons/vite'` |
+| [`examples/vite-web-components`](./examples/vite-web-components) | Vite + Web Components，`import { TDesignIconsWebComponents } from 'unplugin-tdesign-icons/vite'` |
+| [`examples/webpack-vue3`](./examples/webpack-vue3) | Webpack 5 + Vue 3，`const { TDesignIconsVueNext } = require('unplugin-tdesign-icons/webpack')`（CJS） |
+| [`examples/rollup-react`](./examples/rollup-react) | Rollup + React，`import { TDesignIconsReact } from 'unplugin-tdesign-icons/rollup'` |
+| [`examples/rolldown-react`](./examples/rolldown-react) | Rolldown + React，`import { TDesignIconsReact } from 'unplugin-tdesign-icons/rolldown'` |
+| [`examples/rspack-react`](./examples/rspack-react) | Rspack + React，`import { TDesignIconsReact } from 'unplugin-tdesign-icons/rspack'` |
+| [`examples/esbuild-react`](./examples/esbuild-react) | esbuild + React，`import { TDesignIconsReact } from 'unplugin-tdesign-icons/esbuild'` |
 
 每个示例都可以 `pnpm install && pnpm run dev` / `pnpm run build` 直接跑起来，详见 [`examples/README.md`](./examples/README.md)。
 

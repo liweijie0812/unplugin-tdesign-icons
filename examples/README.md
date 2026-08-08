@@ -4,15 +4,15 @@
 
 | 示例 | 技术栈 | 入口 |
 | --- | --- | --- |
-| [`vite-vue3`](./vite-vue3) | Vite + Vue 3 | `unplugin-tdesign-icons/vite` + `{ framework: 'vue-next' }` |
-| [`vite-vue2`](./vite-vue2) | Vite + Vue 2 | `unplugin-tdesign-icons/vite` + `{ framework: 'vue' }` |
-| [`vite-react`](./vite-react) | Vite + React | `unplugin-tdesign-icons/vite` + `{ framework: 'react' }` |
-| [`vite-web-components`](./vite-web-components) | Vite + Web Components | `unplugin-tdesign-icons/vite` + `{ framework: 'web-components' }` |
-| [`webpack-vue3`](./webpack-vue3) | Webpack 5 + Vue 3（CJS） | `unplugin-tdesign-icons/webpack` + `{ framework: 'vue-next' }` |
-| [`rollup-react`](./rollup-react) | Rollup + React | `unplugin-tdesign-icons/rollup` + `{ framework: 'react' }` |
-| [`rolldown-react`](./rolldown-react) | Rolldown + React | `unplugin-tdesign-icons/rolldown` + `{ framework: 'react' }` |
-| [`rspack-react`](./rspack-react) | Rspack + React | `unplugin-tdesign-icons/rspack` + `{ framework: 'react' }` |
-| [`esbuild-react`](./esbuild-react) | esbuild + React | `unplugin-tdesign-icons/esbuild` + `{ framework: 'react' }` |
+| [`vite-vue3`](./vite-vue3) | Vite + Vue 3 | `import { TDesignIconsVueNext } from 'unplugin-tdesign-icons/vite'` → `TDesignIconsVueNext()` |
+| [`vite-vue2`](./vite-vue2) | Vite + Vue 2 | `import { TDesignIconsVue } from 'unplugin-tdesign-icons/vite'` → `TDesignIconsVue()` |
+| [`vite-react`](./vite-react) | Vite + React | `import { TDesignIconsReact } from 'unplugin-tdesign-icons/vite'` → `TDesignIconsReact()` |
+| [`vite-web-components`](./vite-web-components) | Vite + Web Components | `import { TDesignIconsWebComponents } from 'unplugin-tdesign-icons/vite'` → `TDesignIconsWebComponents()` |
+| [`webpack-vue3`](./webpack-vue3) | Webpack 5 + Vue 3（CJS） | `const { TDesignIconsVueNext } = require('unplugin-tdesign-icons/webpack')` → `TDesignIconsVueNext()` |
+| [`rollup-react`](./rollup-react) | Rollup + React | `import { TDesignIconsReact } from 'unplugin-tdesign-icons/rollup'` → `TDesignIconsReact()` |
+| [`rolldown-react`](./rolldown-react) | Rolldown + React | `import { TDesignIconsReact } from 'unplugin-tdesign-icons/rolldown'` → `TDesignIconsReact()` |
+| [`rspack-react`](./rspack-react) | Rspack + React | `import { TDesignIconsReact } from 'unplugin-tdesign-icons/rspack'` → `TDesignIconsReact()` |
+| [`esbuild-react`](./esbuild-react) | esbuild + React | `import { TDesignIconsReact } from 'unplugin-tdesign-icons/esbuild'` → `TDesignIconsReact()` |
 
 ## 运行方式
 
@@ -37,12 +37,12 @@ pnpm run build   # 生产构建
 
 ## 每个示例展示什么
 
-- **`vite-vue3`**：源码用桶导入 `import { CloseIcon, ... } from 'tdesign-icons-vue-next'`，构建时由 `unplugin-tdesign-icons/vite`（`Icons({ framework: 'vue-next' })`）改写为单图标深层导入。
-- **`vite-vue2`**：同上，面向 `tdesign-icons-vue`，由 `unplugin-tdesign-icons/vite`（`framework: 'vue'`）处理。
-- **`vite-react`**：同上，面向 `tdesign-icons-react`，由 `unplugin-tdesign-icons/vite`（`framework: 'react'`）处理。
-- **`vite-web-components`**：面向 `tdesign-icons-web-components`，由 `unplugin-tdesign-icons/vite`（`framework: 'web-components'`）处理。
-- **`webpack-vue3`**：Webpack 5 + Vue 3，通过 CJS `require('unplugin-tdesign-icons/webpack')`（`Icons({ framework: 'vue-next' })`）使用。
-- **`rollup-react`**：Rollup + React，`.tsx` 经 `rollup-plugin-esbuild` 编译，桶导入由 `Icons({ framework: 'react' })` 改写。
-- **`rolldown-react`**：Rolldown + React，Rolldown 原生支持 TSX，桶导入由 `Icons({ framework: 'react' })` 改写。
-- **`rspack-react`**：Rspack + React，`.tsx` 经内置 `builtin:swc-loader` 编译，桶导入由 `Icons({ framework: 'react' })` 改写。
-- **`esbuild-react`**：esbuild + React，`.tsx` 原生支持，桶导入由 `Icons({ framework: 'react' })` 改写。
+- **`vite-vue3`**：源码用桶导入 `import { CloseIcon, ... } from 'tdesign-icons-vue-next'`，构建时由 `unplugin-tdesign-icons/vite` 的 `TDesignIconsVueNext()` 改写为单图标深层导入。
+- **`vite-vue2`**：同上，面向 `tdesign-icons-vue`，由 `unplugin-tdesign-icons/vite` 的 `TDesignIconsVue()` 处理。
+- **`vite-react`**：同上，面向 `tdesign-icons-react`，由 `unplugin-tdesign-icons/vite` 的 `TDesignIconsReact()` 处理。
+- **`vite-web-components`**：面向 `tdesign-icons-web-components`，由 `unplugin-tdesign-icons/vite` 的 `TDesignIconsWebComponents()` 处理。
+- **`webpack-vue3`**：Webpack 5 + Vue 3，通过 CJS `require('unplugin-tdesign-icons/webpack')` 拿到 `TDesignIconsVueNext` 后直接 `TDesignIconsVueNext()` 使用。
+- **`rollup-react`**：Rollup + React，`.tsx` 经 `rollup-plugin-esbuild` 编译，桶导入由 `TDesignIconsReact()` 改写。
+- **`rolldown-react`**：Rolldown + React，Rolldown 原生支持 TSX，桶导入由 `TDesignIconsReact()` 改写。
+- **`rspack-react`**：Rspack + React，`.tsx` 经内置 `builtin:swc-loader` 编译，桶导入由 `TDesignIconsReact()` 改写。
+- **`esbuild-react`**：esbuild + React，`.tsx` 原生支持，桶导入由 `TDesignIconsReact()` 改写。

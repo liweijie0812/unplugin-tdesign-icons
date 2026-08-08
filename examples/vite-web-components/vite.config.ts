@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
-// unplugin-icons 风格：`/vite` 子路径的默认导出就是插件工厂，直接 `Icons()` 调用
-import Icons from 'unplugin-tdesign-icons/vite'
+// 按框架从 `/vite` 子路径具名导入插件工厂，直接 `TDesignIconsWebComponents()` 调用
+import { TDesignIconsWebComponents } from 'unplugin-tdesign-icons/vite'
 
 export default defineConfig({
   server: {
@@ -12,6 +12,6 @@ export default defineConfig({
   plugins: [
     // Rewrite `import { XxxIcon } from 'tdesign-icons-web-components'` into the
     // deep import of the single icon module at build time.
-    Icons({ framework: 'web-components' }),
+    TDesignIconsWebComponents(),
   ],
 })
