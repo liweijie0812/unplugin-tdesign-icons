@@ -2,7 +2,7 @@ $:
   vscode:
     - name: workspace
       docker:
-        image: node:22
+        image: cnbcool/default-dev-env:latest
       services:
         - vscode
         - docker
