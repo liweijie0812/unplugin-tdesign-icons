@@ -9,22 +9,31 @@
 | [`vite-react`](./vite-react) | Vite + React | `unplugin-tdesign-icons/TDesignIconsReact` |
 | [`vite-web-components`](./vite-web-components) | Vite + Web Components | `unplugin-tdesign-icons/TDesignIconsWebComponents` |
 | [`webpack-vue3`](./webpack-vue3) | Webpack 5 + Vue 3（CJS） | `unplugin-tdesign-icons/TDesignIconsVueNext` |
+| [`rollup-react`](./rollup-react) | Rollup + React | `unplugin-tdesign-icons/TDesignIconsReact` |
+| [`rolldown-react`](./rolldown-react) | Rolldown + React | `unplugin-tdesign-icons/TDesignIconsReact` |
+| [`rspack-react`](./rspack-react) | Rspack + React | `unplugin-tdesign-icons/TDesignIconsReact` |
+| [`esbuild-react`](./esbuild-react) | esbuild + React | `unplugin-tdesign-icons/TDesignIconsReact` |
 
 ## 运行方式
 
 ```bash
 # 先构建一次插件本体（examples 通过 file: ../.. 引用根包）
-cd ../.. && npm install && npm run build && cd -
+cd ../.. && pnpm install && pnpm run build && cd -
 
 # 进入任一示例
 cd vite-vue3
-npm install
-npm run dev     # 开发模式
-npm run build   # 生产构建
+pnpm install
+pnpm run dev     # 开发模式（仅 Vite 系列示例支持）
+pnpm run build   # 生产构建
 ```
 
 > 示例的 `package.json` 通过 `"unplugin-tdesign-icons": "file:../.."` 直接引用仓库根目录，
-> 因此修改插件源码后需先在根目录重新 `npm run build` 生成 `dist/`。
+> 因此修改插件源码后需先在根目录重新 `pnpm run build` 生成 `dist/`。
+> 包管理器统一使用 pnpm（corepack 管理版本）。
+
+> 💡 **CNB 云原生开发环境**：`vite-*` 示例的 `vite.config.ts` 已内置
+> `server: { host: true, allowedHosts: true }`，使 dev server 监听 `0.0.0.0`
+> 并放行代理域名 Host 校验，可直接在 CNB 开发环境中启动并预览端口。
 
 ## 每个示例展示什么
 
@@ -33,3 +42,7 @@ npm run build   # 生产构建
 - **`vite-react`**：同上，面向 `tdesign-icons-react`，由 `unplugin-tdesign-icons/TDesignIconsReact` 处理。
 - **`vite-web-components`**：面向 `tdesign-icons-web-components`，由 `unplugin-tdesign-icons/TDesignIconsWebComponents` 处理。
 - **`webpack-vue3`**：Webpack 5 + Vue 3，通过 CJS `require('unplugin-tdesign-icons/TDesignIconsVueNext')` 使用。
+- **`rollup-react`**：Rollup + React，`.tsx` 经 `rollup-plugin-esbuild` 编译，桶导入由 `TDesignIconsReact.rollup()` 改写。
+- **`rolldown-react`**：Rolldown + React，Rolldown 原生支持 TSX，桶导入由 `TDesignIconsReact.rolldown()` 改写。
+- **`rspack-react`**：Rspack + React，`.tsx` 经内置 `builtin:swc-loader` 编译，桶导入由 `TDesignIconsReact.rspack()` 改写。
+- **`esbuild-react`**：esbuild + React，`.tsx` 原生支持，桶导入由 `TDesignIconsReact.esbuild()` 改写。

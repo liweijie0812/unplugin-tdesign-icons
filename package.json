@@ -4,6 +4,10 @@
   "description": "An unplugin for on-demand importing TDesign icons (vue / vue-next / react / web-components). Auto rewrites `import { XxxIcon } from 'tdesign-icons-xxx'` to the exact icon module, avoiding bundling all 2000+ icons.",
   "license": "MIT",
   "type": "module",
+  "packageManager": "pnpm@11.20.0",
+  "engines": {
+    "pnpm": ">=9"
+  },
   "files": [
     "dist"
   ],

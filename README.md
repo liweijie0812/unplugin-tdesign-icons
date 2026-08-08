@@ -28,13 +28,20 @@ import CloseIcon from 'tdesign-icons-vue-next/esm/components/close.js'
 
 ## 安装
 
+> 本仓库使用 [pnpm](https://pnpm.io) 作为包管理器（根目录 `package.json` 声明了 `packageManager`），本地开发请先启用对应版本：
+>
+> ```bash
+> corepack enable
+> pnpm install
+> ```
+
 ```bash
-npm i -D unplugin-tdesign-icons
+pnpm add -D unplugin-tdesign-icons
 # 按需安装对应图标包
-npm i tdesign-icons-vue-next   # Vue 3
-npm i tdesign-icons-vue        # Vue 2
-npm i tdesign-icons-react      # React
-npm i tdesign-icons-web-components  # Web Components
+pnpm add tdesign-icons-vue-next   # Vue 3
+pnpm add tdesign-icons-vue        # Vue 2
+pnpm add tdesign-icons-react      # React
+pnpm add tdesign-icons-web-components  # Web Components
 ```
 
 ## 使用
@@ -103,6 +110,24 @@ export default defineConfig({
 })
 ```
 
+### CNB 云原生开发环境（端口预览）
+
+在 CNB 云原生开发环境中启动 Vite dev server 并通过 WebIDE 的 PORTS 面板 / 预览访问时，
+需要让服务监听 `0.0.0.0` 并放行代理域名（如 `*.cnb.run`）的 Host 校验，否则页面无法打开：
+
+```ts
+// vite.config.ts
+export default defineConfig({
+  server: {
+    host: true,          // 监听 0.0.0.0，供端口预览访问
+    allowedHosts: true,  // 放行代理域名（*.cnb.run）的 Host 校验
+  },
+  // ...
+})
+```
+
+> 仓库内 `examples/vite-*` 四个示例的 `vite.config.ts` 均已带上该配置，可直接在 CNB 云原生环境中 `pnpm run dev` 后预览。
+
 ### 其他构建工具
 
 分包入口同样支持所有 unplugin 目标：
@@ -133,7 +158,7 @@ build({ plugins: [TDesignIconsVueNext.esbuild()] })
 
 ## 示例（Examples）
 
-参考 unplugin-icons，本仓库在 [`examples/`](./examples) 提供了可直接运行的示例工程，覆盖 Vue 2 / Vue 3 / React / Web Components 与 Vite / Webpack 等主流组合：
+参考 unplugin-icons，本仓库在 [`examples/`](./examples) 提供了可直接运行的示例工程，覆盖 Vue 2 / Vue 3 / React / Web Components 与 Vite / Webpack / Rollup / Rolldown / Rspack / esbuild 等主流组合：
 
 | 示例 | 说明 |
 | --- | --- |
@@ -142,8 +167,12 @@ build({ plugins: [TDesignIconsVueNext.esbuild()] })
 | [`examples/vite-react`](./examples/vite-react) | Vite + React，`unplugin-tdesign-icons/TDesignIconsReact` |
 | [`examples/vite-web-components`](./examples/vite-web-components) | Vite + Web Components，`unplugin-tdesign-icons/TDesignIconsWebComponents` |
 | [`examples/webpack-vue3`](./examples/webpack-vue3) | Webpack 5 + Vue 3，`unplugin-tdesign-icons/TDesignIconsVueNext`（CJS） |
+| [`examples/rollup-react`](./examples/rollup-react) | Rollup + React，`unplugin-tdesign-icons/TDesignIconsReact` |
+| [`examples/rolldown-react`](./examples/rolldown-react) | Rolldown + React，`unplugin-tdesign-icons/TDesignIconsReact` |
+| [`examples/rspack-react`](./examples/rspack-react) | Rspack + React，`unplugin-tdesign-icons/TDesignIconsReact` |
+| [`examples/esbuild-react`](./examples/esbuild-react) | esbuild + React，`unplugin-tdesign-icons/TDesignIconsReact` |
 
-每个示例都可以 `npm install && npm run dev` / `npm run build` 直接跑起来，详见 [`examples/README.md`](./examples/README.md)。
+每个示例都可以 `pnpm install && pnpm run dev` / `pnpm run build` 直接跑起来，详见 [`examples/README.md`](./examples/README.md)。
 
 ## 验证
 
