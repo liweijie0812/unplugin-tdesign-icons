@@ -14,7 +14,7 @@ $:
           script: npm run build
         - name: examples
           script: |
-            for example in vite-vue3 vite-vue2 vite-react vite-web-components webpack-vue3; do
+            for example in vite-vue3 vite-vue2 vite-react vite-web-components webpack-vue3 rollup-react rolldown-react rspack-react esbuild-react; do
               echo "==> building examples/$example"
               (cd "examples/$example" && npm ci && npm run build) || exit 1
             done
@@ -33,7 +33,7 @@ $:
           script: npm run build
         - name: examples
           script: |
-            for example in vite-vue3 vite-vue2 vite-react vite-web-components webpack-vue3; do
+            for example in vite-vue3 vite-vue2 vite-react vite-web-components webpack-vue3 rollup-react rolldown-react rspack-react esbuild-react; do
               echo "==> building examples/$example"
               (cd "examples/$example" && npm ci && npm run build) || exit 1
             done
