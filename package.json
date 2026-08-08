@@ -41,6 +41,10 @@
         "default": "./dist/react.cjs"
       }
     },
+    "./vite": "./dist/vite.js",
+    "./rollup": "./dist/rollup.js",
+    "./webpack": "./dist/webpack.js",
+    "./esbuild": "./dist/esbuild.js",
     "./package.json": "./package.json"
   },
   "sideEffects": false,

@@ -1,0 +1,58 @@
+<script setup>
+// 构建时被 unplugin-tdesign-icons 改写为单图标深层导入，例如：
+//   import CloseIcon from 'tdesign-icons-vue-next/esm/components/close.js'
+import { CloseIcon, SearchIcon, TimeIcon, UserIcon } from 'tdesign-icons-vue-next'
+</script>
+
+<template>
+  <main class="app">
+    <h1>unplugin-tdesign-icons · Vue 3 + Webpack</h1>
+    <p class="hint">源码写桶导入，构建时被插件改写为单图标深层导入。</p>
+    <div class="icons">
+      <div class="icon-card"><CloseIcon /><span>CloseIcon</span></div>
+      <div class="icon-card"><SearchIcon /><span>SearchIcon</span></div>
+      <div class="icon-card"><TimeIcon /><span>TimeIcon</span></div>
+      <div class="icon-card"><UserIcon /><span>UserIcon</span></div>
+    </div>
+  </main>
+</template>
+
+<style>
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #f5f7fa;
+  color: #181818;
+}
+.app {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+.hint {
+  color: #666;
+  margin-bottom: 2rem;
+}
+.icons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 1rem;
+}
+.icon-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 8%);
+  font-size: 0.8rem;
+  color: #666;
+}
+.icon-card svg {
+  width: 2em;
+  height: 2em;
+}
+</style>

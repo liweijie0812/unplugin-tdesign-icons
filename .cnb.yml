@@ -12,6 +12,12 @@ $:
           script: npm run typecheck
         - name: build
           script: npm run build
+        - name: examples
+          script: |
+            for example in vite-vue3 vite-react webpack-vue3; do
+              echo "==> building examples/$example"
+              (cd "examples/$example" && npm ci && npm run build) || exit 1
+            done
   pull_request:
     - name: test-and-build
       docker:
@@ -25,3 +31,9 @@ $:
           script: npm run typecheck
         - name: build
           script: npm run build
+        - name: examples
+          script: |
+            for example in vite-vue3 vite-react webpack-vue3; do
+              echo "==> building examples/$example"
+              (cd "examples/$example" && npm ci && npm run build) || exit 1
+            done

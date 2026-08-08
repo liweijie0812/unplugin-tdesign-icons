@@ -77,6 +77,7 @@ import TdesignIcons from 'unplugin-tdesign-icons/rollup'
 export default { plugins: [TdesignIcons({ framework: 'vue' })] }
 
 // webpack.config.js
+// 子路径入口是 ESM（与 unplugin-icons 一致），CJS 通过 require(esm) 互操作拿到插件函数
 const TdesignIcons = require('unplugin-tdesign-icons/webpack')
 module.exports = { plugins: [TdesignIcons({ framework: 'vue' })] }
 
@@ -85,6 +86,18 @@ import { build } from 'esbuild'
 import TdesignIcons from 'unplugin-tdesign-icons/esbuild'
 build({ plugins: [TdesignIcons({ framework: 'vue' })] })
 ```
+
+## 示例（Examples）
+
+参考 unplugin-icons，本仓库在 [`examples/`](./examples) 提供了可直接运行的示例工程，覆盖 Vue 3 / React 与 Vite / Webpack 等主流组合：
+
+| 示例 | 说明 |
+| --- | --- |
+| [`examples/vite-vue3`](./examples/vite-vue3) | Vite + Vue 3，`unplugin-tdesign-icons/vite` |
+| [`examples/vite-react`](./examples/vite-react) | Vite + React，`unplugin-tdesign-icons/vite` |
+| [`examples/webpack-vue3`](./examples/webpack-vue3) | Webpack 5 + Vue 3，`unplugin-tdesign-icons/webpack`（CJS） |
+
+每个示例都可以 `npm install && npm run dev` / `npm run build` 直接跑起来，详见 [`examples/README.md`](./examples/README.md)。
 
 ## 选项
 
