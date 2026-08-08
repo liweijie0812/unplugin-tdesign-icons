@@ -32,6 +32,17 @@ export interface Options {
    */
   localIcons?: boolean
   /**
+   * Extra tag names that map to the barrel `Icon` component, so `localIcons`
+   * can also rewrite `<t-icon name="xxx" />` style wrappers at build time.
+   *
+   * Key = the tag used in templates (e.g. `'t-icon'`), value = the barrel
+   * export it wraps (usually `'Icon'`). This is useful when your component
+   * library wraps TDesign `Icon` behind a convenience tag.
+   *
+   * @default `{ 't-icon': 'Icon' }` for vue / vue-next (TDesign Vue 组件库默认)
+   */
+  aliases?: Record<string, string>
+  /**
    * Extra path fragments used to decide which files get transformed.
    * By default the plugin rewrites imports of the target icon package
    * wherever they appear (except `exclude`d paths).
@@ -48,6 +59,7 @@ export interface ResolvedOptions {
   framework: Framework
   packageName?: string
   localIcons: boolean
+  aliases: Record<string, string>
   includeSource: string[]
   exclude: (string | RegExp)[]
 }
@@ -58,6 +70,7 @@ export interface FrameworkConfig {
   componentDir: 'esm/components'
   includeSource: string[]
   localIcons: boolean
+  aliases: Record<string, string>
 }
 
 export type TransformResult =

@@ -14,6 +14,7 @@ import {
 } from 'tdesign-icons-vue-next'
 // 开启 localIcons 后，下面的 `<Icon name="sneer" />` 会被插件改写为
 // `<SneerIcon />`，无需从 CDN 拉取 svg-sprite，离线也能渲染。
+// vue/vue-next 默认还会识别 TDesign Vue 组件库的 `<t-icon name="xxx" />` 封装。
 import { Icon } from 'tdesign-icons-vue-next'
 
 const count = ref(0)
@@ -36,6 +37,8 @@ const count = ref(0)
       <div class="icon-card"><UserIcon /><span>UserIcon</span></div>
       <!-- localIcons 演示：构建时改写为 <SneerIcon />，离线渲染 -->
       <div class="icon-card"><Icon name="sneer" /><span>Icon name="sneer"</span></div>
+      <!-- TDesign Vue 组件库的 <t-icon> 封装同样会被改写 -->
+      <div class="icon-card"><t-icon name="unhappy" /><span>t-icon name="unhappy"</span></div>
     </div>
 
     <button class="btn" type="button" @click="count++">

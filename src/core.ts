@@ -81,7 +81,7 @@ export function createTransformer(config: FrameworkConfig) {
     // When `localIcons` is enabled we also rewrite `<Icon name="xxx" />`
     // (the svg-sprite `Icon` that would otherwise load the CDN sprite) into
     // the deep single-icon component `<XxxIcon />` so it renders offline.
-    // Collect the local names under which `Icon` is imported first.
+    // Collect the local names under which the barrel `Icon` is imported first.
     let iconLocalNames: string[] = []
     if (config.localIcons) {
       for (const stmt of stmts) {
@@ -91,8 +91,14 @@ export function createTransformer(config: FrameworkConfig) {
         if (!specifierMatch) continue
         for (const spec of specifierMatch[1]!.split(',').map((n) => n.trim()).filter(Boolean)) {
           const [original, alias] = spec.split(/\s+as\s+/)
-          if (original === 'Icon') {
-            const local = alias ? alias.trim() : 'Icon'
+          // The tag rewrite targets the barrel `Icon` export (always) plus any
+          // extra barrel exports referenced by `aliases` (e.g. a component
+          // library wrapper re-export mapped to `<t-icon>`).
+          const isBarrelIcon =
+            original === 'Icon' ||
+            (config.aliases && Object.values(config.aliases).includes(original))
+          if (isBarrelIcon) {
+            const local = alias ? alias.trim() : original
             if (!iconLocalNames.includes(local)) iconLocalNames.push(local)
           }
         }
@@ -100,11 +106,15 @@ export function createTransformer(config: FrameworkConfig) {
     }
 
     // Collect `<Icon name="xxx" />` usages so they can be rewritten to deep
-    // single-icon components when `localIcons` is enabled.
+    // single-icon components when `localIcons` is enabled. This runs when a
+    // barrel `Icon` binding exists OR when alias tags (e.g. `t-icon`) are
+    // configured — a component library may register `t-icon` globally without
+    // an explicit `import { Icon }` in the same file.
     const iconUsages: IconUsage[] = []
     const iconStillUsed = new Set<string>()
-    if (config.localIcons && iconLocalNames.length) {
-      const collected = collectIconUsages(code, iconLocalNames, loadManifestByName())
+    const hasAliasTags = config.aliases ? Object.keys(config.aliases).length > 0 : false
+    if (config.localIcons && (iconLocalNames.length || hasAliasTags)) {
+      const collected = collectIconUsages(code, iconLocalNames, config.aliases, loadManifestByName())
       iconUsages.push(...collected.usages)
       for (const name of collected.stillUsed) iconStillUsed.add(name)
     }
@@ -136,12 +146,16 @@ export function createTransformer(config: FrameworkConfig) {
       const iconSpecs: { original: string; local: string; stem: string }[] = []
       const barrelSpecifiers: string[] = []
       const inStatement = new Set<string>()
+      const aliasBarrel = config.aliases ? Object.values(config.aliases) : []
+      // Barrel exports whose tags can be rewritten by `localIcons`: always
+      // `Icon`, plus anything referenced by `aliases`.
+      const rewritableBarrel = ['Icon', ...aliasBarrel]
       for (const name of specifiers) {
         const [original, alias] = name.split(/\s+as\s+/)
         const local = alias ? alias.trim() : original
         // If `localIcons` fully rewrote every `<Icon ...>` reference, drop the
         // now-unused barrel `Icon` import so the CDN-sprite module is tree-shaken.
-        if (config.localIcons && original === 'Icon' && !iconStillUsed.has(local)) {
+        if (config.localIcons && rewritableBarrel.includes(original) && !iconStillUsed.has(local)) {
           continue
         }
         if (!original || !map.has(original)) {
@@ -396,6 +410,7 @@ interface IconUsageCollection {
 function collectIconUsages(
   code: string,
   localNames: string[],
+  aliases: Record<string, string>,
   byName: Map<string, string>,
 ): IconUsageCollection {
   const usages: IconUsage[] = []
@@ -419,6 +434,21 @@ function collectIconUsages(
         .toLowerCase(),
     )
     for (const variant of accepted) canonicalOf.set(variant, name)
+  }
+
+  // Extra convenience tags that wrap the barrel `Icon` component — e.g.
+  // `<t-icon name="sneer" />` from a component library that re-exports
+  // TDesign `Icon` under a short alias. The tag maps to the barrel local
+  // name (usually `Icon`).
+  //
+  // A tag is NOT overridden if a local binding already produces it as a
+  // kebab-case variant (e.g. `import { Icon as TIcon }` → `<t-icon>`), so the
+  // still-used tracking stays attached to the real local binding.
+  for (const [tag, barrelLocal] of Object.entries(aliases ?? {})) {
+    if (!canonicalOf.has(tag)) {
+      accepted.add(tag)
+      canonicalOf.set(tag, barrelLocal)
+    }
   }
 
   // Match any `<Icon ...>` / `<icon ...>` / `<Icon ... />` opening tag.
@@ -511,7 +541,10 @@ function requireManifest(packageName: string) {
   )
 }
 
-const frameworkConfigs: Record<Framework, Omit<FrameworkConfig, 'includeSource' | 'localIcons'>> = {
+const frameworkConfigs: Record<
+  Framework,
+  Omit<FrameworkConfig, 'includeSource' | 'localIcons' | 'aliases'>
+> = {
   vue: {
     framework: 'vue',
     packageName: 'tdesign-icons-vue',
@@ -539,6 +572,13 @@ export const unpluginFactory = (options: Options = {}) => {
     framework: options.framework ?? 'vue-next',
     packageName: options.packageName,
     localIcons: options.localIcons ?? false,
+    // TDesign Vue 组件库把 `Icon` 封装为 `<t-icon>`（全局注册），默认识别它；
+    // 用户可传入 `aliases` 自定义其它封装标签。React/Web Components 无此约定。
+    aliases:
+      options.aliases ??
+      (options.framework === 'vue' || options.framework === 'vue-next'
+        ? { 't-icon': 'Icon' }
+        : {}),
     includeSource: options.includeSource ?? [],
     exclude: options.exclude ?? [/node_modules/],
   }
@@ -552,6 +592,7 @@ export const unpluginFactory = (options: Options = {}) => {
       packageName: resolved.packageName ?? base.packageName,
       includeSource: resolved.includeSource,
       localIcons: resolved.localIcons,
+      aliases: resolved.aliases,
     }
     return createTransformer(config)
   })
