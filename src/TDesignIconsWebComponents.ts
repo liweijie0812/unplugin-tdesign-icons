@@ -1,6 +1,6 @@
 import { createUnplugin } from 'unplugin'
-import { unpluginFactory } from './core'
-import type { Options } from './types'
+import { unpluginFactory } from './core.ts'
+import type { Options } from './types.ts'
 
 /**
  * Entry for `tdesign-icons-web-components` (Web Components).

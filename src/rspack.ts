@@ -1,5 +1,5 @@
 import { createRspackPlugin } from 'unplugin'
-import { unpluginFactory } from './core'
+import { unpluginFactory } from './core.ts'
 
 /**
  * Rspack plugin entry.

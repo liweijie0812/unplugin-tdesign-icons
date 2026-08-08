@@ -14,31 +14,67 @@ const entries = [
   'src/esbuild.ts',
 ]
 
+// 短别名 → 正式子路径：保持与旧版手写 exports 的兼容
+const ALIASES: Record<string, string> = {
+  './vue': './TDesignIconsVue',
+  './vue-next': './TDesignIconsVueNext',
+  './react': './TDesignIconsReact',
+  './web-components': './TDesignIconsWebComponents',
+}
+
 export default defineConfig({
   entry: entries,
   format: ['esm', 'cjs'],
   dts: {
-    // 与 tsup 的 dts 行为一致：同时产出 index.d.mts / index.d.cts，
-    // CJS 侧用一行 `export type * from './index.d.mts'` 复用 ESM 类型声明，
-    // 避免双份 .d.cts/.d.mts 各自的声明不一致（TS 双模块隐患）。
     cjsReexport: true,
   },
   clean: true,
   sourcemap: true,
-  // 关闭产物 hash（保持与 tsup 时代一致的稳定输出文件名）。
   hash: false,
-  // CJS 保持 es2020；ESM 需 esnext 才能输出 `export { x as 'module.exports' }`
-  //（与 unplugin-icons 一致，靠 require(esm) 互操作让 CJS 消费方能直接 require 到插件函数）。
   target: ['esnext'],
-  // 运行时依赖保持 external，不打包进产物。
   deps: {
     neverBundle: ['unplugin', 'es-module-lexer', 'magic-string'],
-    // 生成 .d.ts 时 unplugin 的类型会引用 webpack / tapable 等 CJS 类型定义，
-    // rolldown-plugin-dts 无法打包这些 CommonJS .d.ts。这里让 dts 阶段把所有
-    // npm 包都 external，产物 .d.ts 直接保留 `import type ... from 'unplugin'`，
-    // 由消费方（unplugin 是 dependencies）自行解析，与 tsup 时代行为一致。
     dts: {
       neverBundle: true,
+    },
+  },
+  exports: {
+    // devExports：开发期 exports 直接指向 src 源码，无需 build 即可本地联调
+    devExports: true,
+    customExports(exports, { isPublish }) {
+      const result: Record<string, any> = { ...exports }
+      // 补上短别名（dev 模式指向源码；publish 模式指向真实产物文件）
+      for (const [alias, target] of Object.entries(ALIASES)) {
+        if (result[target] === undefined) continue
+        if (isPublish) {
+          const t = result[target] as any
+          const pick = (v: any) => (typeof v === 'string' ? v : v?.default)
+          result[alias] = pick(t?.import) ?? pick(t?.require)
+        } else {
+          result[alias] = result[target]
+        }
+      }
+      if (isPublish) {
+        // 发布产物：为每个子路径补上 types 条件（import→d.mts / require→d.cts）
+        for (const [name, value] of Object.entries(result)) {
+          if (name === './package.json' || typeof value !== 'object' || value === null) continue
+          const file = name === '.' ? 'index' : name.replace(/^\.\//, '')
+          const entry: any = {}
+          for (const cond of ['import', 'require']) {
+            const target = (value as any)[cond]
+            if (typeof target === 'string') {
+              entry[cond] = {
+                types: `./dist/${file}.d.${cond === 'require' ? 'cts' : 'mts'}`,
+                default: target,
+              }
+            } else if (target && typeof target === 'object') {
+              entry[cond] = { ...target }
+            }
+          }
+          result[name] = entry
+        }
+      }
+      return result
     },
   },
 })
