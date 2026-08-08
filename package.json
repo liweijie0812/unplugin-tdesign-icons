@@ -9,32 +9,122 @@
   ],
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "types": "dist/index.d.mts",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
       },
       "require": {
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
     },
-    "./TDesignIconsVue": "./dist/TDesignIconsVue.js",
-    "./vue": "./dist/TDesignIconsVue.js",
-    "./TDesignIconsVueNext": "./dist/TDesignIconsVueNext.js",
-    "./vue-next": "./dist/TDesignIconsVueNext.js",
-    "./TDesignIconsReact": "./dist/TDesignIconsReact.js",
-    "./react": "./dist/TDesignIconsReact.js",
-    "./TDesignIconsWebComponents": "./dist/TDesignIconsWebComponents.js",
-    "./web-components": "./dist/TDesignIconsWebComponents.js",
-    "./vite": "./dist/vite.js",
-    "./rollup": "./dist/rollup.js",
-    "./rolldown": "./dist/rolldown.js",
-    "./webpack": "./dist/webpack.js",
-    "./rspack": "./dist/rspack.js",
-    "./esbuild": "./dist/esbuild.js",
+    "./TDesignIconsVue": {
+      "import": {
+        "types": "./dist/TDesignIconsVue.d.mts",
+        "default": "./dist/TDesignIconsVue.mjs"
+      },
+      "require": {
+        "types": "./dist/TDesignIconsVue.d.mts",
+        "default": "./dist/TDesignIconsVue.mjs"
+      }
+    },
+    "./vue": "./dist/TDesignIconsVue.mjs",
+    "./TDesignIconsVueNext": {
+      "import": {
+        "types": "./dist/TDesignIconsVueNext.d.mts",
+        "default": "./dist/TDesignIconsVueNext.mjs"
+      },
+      "require": {
+        "types": "./dist/TDesignIconsVueNext.d.mts",
+        "default": "./dist/TDesignIconsVueNext.mjs"
+      }
+    },
+    "./vue-next": "./dist/TDesignIconsVueNext.mjs",
+    "./TDesignIconsReact": {
+      "import": {
+        "types": "./dist/TDesignIconsReact.d.mts",
+        "default": "./dist/TDesignIconsReact.mjs"
+      },
+      "require": {
+        "types": "./dist/TDesignIconsReact.d.mts",
+        "default": "./dist/TDesignIconsReact.mjs"
+      }
+    },
+    "./react": "./dist/TDesignIconsReact.mjs",
+    "./TDesignIconsWebComponents": {
+      "import": {
+        "types": "./dist/TDesignIconsWebComponents.d.mts",
+        "default": "./dist/TDesignIconsWebComponents.mjs"
+      },
+      "require": {
+        "types": "./dist/TDesignIconsWebComponents.d.mts",
+        "default": "./dist/TDesignIconsWebComponents.mjs"
+      }
+    },
+    "./web-components": "./dist/TDesignIconsWebComponents.mjs",
+    "./vite": {
+      "import": {
+        "types": "./dist/vite.d.mts",
+        "default": "./dist/vite.mjs"
+      },
+      "require": {
+        "types": "./dist/vite.d.mts",
+        "default": "./dist/vite.mjs"
+      }
+    },
+    "./rollup": {
+      "import": {
+        "types": "./dist/rollup.d.mts",
+        "default": "./dist/rollup.mjs"
+      },
+      "require": {
+        "types": "./dist/rollup.d.mts",
+        "default": "./dist/rollup.mjs"
+      }
+    },
+    "./rolldown": {
+      "import": {
+        "types": "./dist/rolldown.d.mts",
+        "default": "./dist/rolldown.mjs"
+      },
+      "require": {
+        "types": "./dist/rolldown.d.mts",
+        "default": "./dist/rolldown.mjs"
+      }
+    },
+    "./webpack": {
+      "import": {
+        "types": "./dist/webpack.d.mts",
+        "default": "./dist/webpack.mjs"
+      },
+      "require": {
+        "types": "./dist/webpack.d.mts",
+        "default": "./dist/webpack.mjs"
+      }
+    },
+    "./rspack": {
+      "import": {
+        "types": "./dist/rspack.d.mts",
+        "default": "./dist/rspack.mjs"
+      },
+      "require": {
+        "types": "./dist/rspack.d.mts",
+        "default": "./dist/rspack.mjs"
+      }
+    },
+    "./esbuild": {
+      "import": {
+        "types": "./dist/esbuild.d.mts",
+        "default": "./dist/esbuild.mjs"
+      },
+      "require": {
+        "types": "./dist/esbuild.d.mts",
+        "default": "./dist/esbuild.mjs"
+      }
+    },
     "./package.json": "./package.json"
   },
   "sideEffects": false,
@@ -51,8 +141,8 @@
     "web-components"
   ],
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build"
@@ -100,7 +190,7 @@
     "tdesign-icons-vue-next": "^0.4.9",
     "tdesign-icons-web-components": "^0.3.7",
     "ts-loader": "^9.6.2",
-    "tsup": "^8.5.1",
+    "tsdown": "^0.22.14",
     "typescript": "^5.7.3",
     "vite": "^6.0.0",
     "vitest": "^2.1.8",
