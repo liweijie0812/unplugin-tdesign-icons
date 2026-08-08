@@ -2,7 +2,7 @@ import { createUnplugin } from 'unplugin'
 import { init, parse } from 'es-module-lexer'
 import { MagicString } from 'magic-string'
 import { createRequire } from 'node:module'
-import type { Options, ResolvedOptions, FrameworkConfig, Framework, TransformResult } from './types'
+import type { Options, ResolvedOptions, FrameworkConfig, Framework, TransformResult } from './types.ts'
 
 // Resolve & load the icon package's manifest. In CJS builds `module.require`
 // is available; in ESM builds we derive a require from our own module URL

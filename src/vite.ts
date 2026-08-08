@@ -1,5 +1,5 @@
 import { createUnplugin } from 'unplugin'
-import { unpluginFactory } from './core'
+import { unpluginFactory } from './core.ts'
 
 /**
  * Vite plugin entry.

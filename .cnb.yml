@@ -9,15 +9,10 @@ $:
       stages:
         - name: install
           # corepack 按根目录 package.json 的 packageManager 字段自动启用对应 pnpm 版本
+          # workspace：examples/* 通过 workspace:* 引用本包，根 pnpm install 统一安装全部
           script: |
             corepack enable
             pnpm install
-        - name: examples-install
-          script: |
-            for example in vite-vue3 vite-vue2 vite-react vite-web-components webpack-vue3 rollup-react rolldown-react rspack-react esbuild-react; do
-              echo "==> installing examples/$example"
-              (cd "examples/$example" && pnpm install) || exit 1
-            done
   push:
     - name: test-and-build
       docker:
@@ -35,10 +30,11 @@ $:
         - name: build
           script: pnpm run build
         - name: examples
+          # 无需逐个 pnpm install（workspace 根已统一安装），直接用 --filter 构建
           script: |
             for example in vite-vue3 vite-vue2 vite-react vite-web-components webpack-vue3 rollup-react rolldown-react rspack-react esbuild-react; do
               echo "==> building examples/$example"
-              (cd "examples/$example" && pnpm install && pnpm run build) || exit 1
+              pnpm --filter "unplugin-tdesign-icons-example-$example" run build || exit 1
             done
   pull_request:
     - name: test-and-build
@@ -59,5 +55,5 @@ $:
           script: |
             for example in vite-vue3 vite-vue2 vite-react vite-web-components webpack-vue3 rollup-react rolldown-react rspack-react esbuild-react; do
               echo "==> building examples/$example"
-              (cd "examples/$example" && pnpm install && pnpm run build) || exit 1
+              pnpm --filter "unplugin-tdesign-icons-example-$example" run build || exit 1
             done
