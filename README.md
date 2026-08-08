@@ -110,6 +110,24 @@ export default defineConfig({
 })
 ```
 
+### CNB 云原生开发环境（端口预览）
+
+在 CNB 云原生开发环境中启动 Vite dev server 并通过 WebIDE 的 PORTS 面板 / 预览访问时，
+需要让服务监听 `0.0.0.0` 并放行代理域名（如 `*.cnb.run`）的 Host 校验，否则页面无法打开：
+
+```ts
+// vite.config.ts
+export default defineConfig({
+  server: {
+    host: true,          // 监听 0.0.0.0，供端口预览访问
+    allowedHosts: true,  // 放行代理域名（*.cnb.run）的 Host 校验
+  },
+  // ...
+})
+```
+
+> 仓库内 `examples/vite-*` 四个示例的 `vite.config.ts` 均已带上该配置，可直接在 CNB 云原生环境中 `pnpm run dev` 后预览。
+
 ### 其他构建工具
 
 分包入口同样支持所有 unplugin 目标：

@@ -31,6 +31,10 @@ pnpm run build   # 生产构建
 > 因此修改插件源码后需先在根目录重新 `pnpm run build` 生成 `dist/`。
 > 包管理器统一使用 pnpm（corepack 管理版本）。
 
+> 💡 **CNB 云原生开发环境**：`vite-*` 示例的 `vite.config.ts` 已内置
+> `server: { host: true, allowedHosts: true }`，使 dev server 监听 `0.0.0.0`
+> 并放行代理域名 Host 校验，可直接在 CNB 开发环境中启动并预览端口。
+
 ## 每个示例展示什么
 
 - **`vite-vue3`**：源码用桶导入 `import { CloseIcon, ... } from 'tdesign-icons-vue-next'`，构建时由 `unplugin-tdesign-icons/TDesignIconsVueNext` 改写为单图标深层导入。
