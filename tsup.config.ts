@@ -1,15 +1,19 @@
 import { defineConfig } from 'tsup'
 
+const entries = [
+  'src/index.ts',
+  'src/vue.ts',
+  'src/react.ts',
+  'src/vite.ts',
+  'src/rollup.ts',
+  'src/rolldown.ts',
+  'src/webpack.ts',
+  'src/rspack.ts',
+  'src/esbuild.ts',
+]
+
 export default defineConfig({
-  entry: [
-    'src/index.ts',
-    'src/vue.ts',
-    'src/react.ts',
-    'src/vite.ts',
-    'src/rollup.ts',
-    'src/webpack.ts',
-    'src/esbuild.ts',
-  ],
+  entry: entries,
   format: ['esm', 'cjs'],
   dts: true,
   clean: true,

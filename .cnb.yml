@@ -2,7 +2,7 @@ $:
   push:
     - name: test-and-build
       docker:
-        image: node:20
+        image: node:22
       stages:
         - name: install
           script: npm ci
@@ -21,7 +21,7 @@ $:
   pull_request:
     - name: test-and-build
       docker:
-        image: node:20
+        image: node:22
       stages:
         - name: install
           script: npm ci

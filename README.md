@@ -76,9 +76,17 @@ export default defineConfig({
 import TdesignIcons from 'unplugin-tdesign-icons/rollup'
 export default { plugins: [TdesignIcons({ framework: 'vue' })] }
 
+// rolldown.config.js
+import TdesignIcons from 'unplugin-tdesign-icons/rolldown'
+export default { plugins: [TdesignIcons({ framework: 'vue' })] }
+
 // webpack.config.js
 // 子路径入口是 ESM（与 unplugin-icons 一致），CJS 通过 require(esm) 互操作拿到插件函数
 const TdesignIcons = require('unplugin-tdesign-icons/webpack')
+module.exports = { plugins: [TdesignIcons({ framework: 'vue' })] }
+
+// rspack.config.js
+const TdesignIcons = require('unplugin-tdesign-icons/rspack')
 module.exports = { plugins: [TdesignIcons({ framework: 'vue' })] }
 
 // esbuild.config.js
@@ -98,6 +106,19 @@ build({ plugins: [TdesignIcons({ framework: 'vue' })] })
 | [`examples/webpack-vue3`](./examples/webpack-vue3) | Webpack 5 + Vue 3，`unplugin-tdesign-icons/webpack`（CJS） |
 
 每个示例都可以 `npm install && npm run dev` / `npm run build` 直接跑起来，详见 [`examples/README.md`](./examples/README.md)。
+
+## 验证
+
+以下构建工具均已通过集成测试，确认按需导入生效（只打包用到的图标、不再含桶入口）：
+
+| 构建工具 | 结果 |
+| --- | --- |
+| Vite | ✅ |
+| Rollup | ✅（配合 `@rollup/plugin-node-resolve`） |
+| Rolldown | ✅ |
+| Webpack | ✅ |
+| Rspack | ✅ |
+| esbuild | ✅ |
 
 ## 选项
 

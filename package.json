@@ -41,10 +41,66 @@
         "default": "./dist/react.cjs"
       }
     },
-    "./vite": "./dist/vite.js",
-    "./rollup": "./dist/rollup.js",
-    "./webpack": "./dist/webpack.js",
-    "./esbuild": "./dist/esbuild.js",
+    "./vite": {
+      "import": {
+        "types": "./dist/vite.d.ts",
+        "default": "./dist/vite.js"
+      },
+      "require": {
+        "types": "./dist/vite.d.ts",
+        "default": "./dist/vite.js"
+      }
+    },
+    "./rollup": {
+      "import": {
+        "types": "./dist/rollup.d.ts",
+        "default": "./dist/rollup.js"
+      },
+      "require": {
+        "types": "./dist/rollup.d.ts",
+        "default": "./dist/rollup.js"
+      }
+    },
+    "./rolldown": {
+      "import": {
+        "types": "./dist/rolldown.d.ts",
+        "default": "./dist/rolldown.js"
+      },
+      "require": {
+        "types": "./dist/rolldown.d.ts",
+        "default": "./dist/rolldown.js"
+      }
+    },
+    "./webpack": {
+      "import": {
+        "types": "./dist/webpack.d.ts",
+        "default": "./dist/webpack.js"
+      },
+      "require": {
+        "types": "./dist/webpack.d.ts",
+        "default": "./dist/webpack.js"
+      }
+    },
+    "./rspack": {
+      "import": {
+        "types": "./dist/rspack.d.ts",
+        "default": "./dist/rspack.js"
+      },
+      "require": {
+        "types": "./dist/rspack.d.ts",
+        "default": "./dist/rspack.js"
+      }
+    },
+    "./esbuild": {
+      "import": {
+        "types": "./dist/esbuild.d.ts",
+        "default": "./dist/esbuild.js"
+      },
+      "require": {
+        "types": "./dist/esbuild.d.ts",
+        "default": "./dist/esbuild.js"
+      }
+    },
     "./package.json": "./package.json"
   },
   "sideEffects": false,
@@ -88,13 +144,19 @@
     "unplugin": "^3.3.0"
   },
   "devDependencies": {
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rspack/core": "^2.1.8",
     "@types/node": "^22.10.2",
+    "esbuild": "^0.28.1",
+    "rolldown": "^1.2.3",
     "rollup": "^4.30.0",
     "tdesign-icons-react": "^0.6.9",
     "tdesign-icons-vue-next": "^0.4.9",
+    "ts-loader": "^9.6.2",
     "tsup": "^8.5.1",
     "typescript": "^5.7.3",
     "vite": "^6.0.0",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.8",
+    "webpack": "^5.109.2"
   }
 }
