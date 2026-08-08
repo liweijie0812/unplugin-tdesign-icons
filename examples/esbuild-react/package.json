@@ -1,0 +1,21 @@
+{
+  "name": "unplugin-tdesign-icons-example-esbuild-react",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "unplugin-tdesign-icons + React (esbuild)",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "tdesign-icons-react": "^0.6.9",
+    "unplugin-tdesign-icons": "file:../.."
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "esbuild": "^0.28.0"
+  }
+}

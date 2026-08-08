@@ -9,6 +9,10 @@
 | [`vite-react`](./vite-react) | Vite + React | `unplugin-tdesign-icons/TDesignIconsReact` |
 | [`vite-web-components`](./vite-web-components) | Vite + Web Components | `unplugin-tdesign-icons/TDesignIconsWebComponents` |
 | [`webpack-vue3`](./webpack-vue3) | Webpack 5 + Vue 3（CJS） | `unplugin-tdesign-icons/TDesignIconsVueNext` |
+| [`rollup-react`](./rollup-react) | Rollup + React | `unplugin-tdesign-icons/TDesignIconsReact` |
+| [`rolldown-react`](./rolldown-react) | Rolldown + React | `unplugin-tdesign-icons/TDesignIconsReact` |
+| [`rspack-react`](./rspack-react) | Rspack + React | `unplugin-tdesign-icons/TDesignIconsReact` |
+| [`esbuild-react`](./esbuild-react) | esbuild + React | `unplugin-tdesign-icons/TDesignIconsReact` |
 
 ## 运行方式
 
@@ -19,7 +23,7 @@ cd ../.. && pnpm install && pnpm run build && cd -
 # 进入任一示例
 cd vite-vue3
 pnpm install
-pnpm run dev     # 开发模式
+pnpm run dev     # 开发模式（仅 Vite 系列示例支持）
 pnpm run build   # 生产构建
 ```
 
@@ -34,3 +38,7 @@ pnpm run build   # 生产构建
 - **`vite-react`**：同上，面向 `tdesign-icons-react`，由 `unplugin-tdesign-icons/TDesignIconsReact` 处理。
 - **`vite-web-components`**：面向 `tdesign-icons-web-components`，由 `unplugin-tdesign-icons/TDesignIconsWebComponents` 处理。
 - **`webpack-vue3`**：Webpack 5 + Vue 3，通过 CJS `require('unplugin-tdesign-icons/TDesignIconsVueNext')` 使用。
+- **`rollup-react`**：Rollup + React，`.tsx` 经 `rollup-plugin-esbuild` 编译，桶导入由 `TDesignIconsReact.rollup()` 改写。
+- **`rolldown-react`**：Rolldown + React，Rolldown 原生支持 TSX，桶导入由 `TDesignIconsReact.rolldown()` 改写。
+- **`rspack-react`**：Rspack + React，`.tsx` 经内置 `builtin:swc-loader` 编译，桶导入由 `TDesignIconsReact.rspack()` 改写。
+- **`esbuild-react`**：esbuild + React，`.tsx` 原生支持，桶导入由 `TDesignIconsReact.esbuild()` 改写。
