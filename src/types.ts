@@ -1,23 +1,27 @@
-export type Framework = 'vue' | 'react' | 'both'
+/**
+ * Which TDesign icons package to optimize.
+ * - `'vue'`            → `tdesign-icons-vue` (Vue 2)
+ * - `'vue-next'`       → `tdesign-icons-vue-next` (Vue 3)
+ * - `'react'`          → `tdesign-icons-react` (React)
+ * - `'web-components'` → `tdesign-icons-web-components` (Web Components)
+ */
+export type Framework = 'vue' | 'vue-next' | 'react' | 'web-components'
 
 export interface Options {
   /**
-   * Which TDesign icons package(s) to optimize.
-   * - `'vue'`   → `tdesign-icons-vue-next`
-   * - `'react'` → `tdesign-icons-react`
-   * - `'both'`  → rewrite imports from both packages (monorepo / mixed projects)
+   * Which TDesign icons package to optimize.
    *
-   * @default 'vue'
+   * @default 'vue-next'
    */
   framework?: Framework
   /**
    * Override the icon package name. Useful when you alias the package.
-   * @default 'tdesign-icons-vue-next' (or 'tdesign-icons-react' for react)
+   * @default the package mapped from `framework`
    */
   packageName?: string
   /**
    * Extra path fragments used to decide which files get transformed.
-   * By default the plugin rewrites imports of the target icon package(s)
+   * By default the plugin rewrites imports of the target icon package
    * wherever they appear (except `exclude`d paths).
    */
   includeSource?: string[]
@@ -36,7 +40,7 @@ export interface ResolvedOptions {
 }
 
 export interface FrameworkConfig {
-  framework: 'vue' | 'react'
+  framework: Framework
   packageName: string
   componentDir: 'esm/components'
   includeSource: string[]

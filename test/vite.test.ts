@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import path from 'node:path'
 import { build } from 'vite'
-import reactPlugin from '../src/react'
+import reactPlugin from '../src/TDesignIconsReact'
 
 const entry = path.resolve(__dirname, 'fixtures/entry.ts')
 

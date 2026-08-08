@@ -1,3 +1,7 @@
 export * from './types'
 export { default } from './core'
 export { unpluginFactory } from './core'
+export { default as TDesignIconsVue } from './TDesignIconsVue'
+export { default as TDesignIconsVueNext } from './TDesignIconsVueNext'
+export { default as TDesignIconsReact } from './TDesignIconsReact'
+export { default as TDesignIconsWebComponents } from './TDesignIconsWebComponents'

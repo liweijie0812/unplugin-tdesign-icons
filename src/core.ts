@@ -2,7 +2,7 @@ import { createUnplugin } from 'unplugin'
 import { init, parse } from 'es-module-lexer'
 import { MagicString } from 'magic-string'
 import { createRequire } from 'node:module'
-import type { Options, ResolvedOptions, FrameworkConfig, TransformResult } from './types'
+import type { Options, ResolvedOptions, FrameworkConfig, Framework, TransformResult } from './types'
 
 // Resolve & load the icon package's manifest. In CJS builds `module.require`
 // is available; in ESM builds we derive a require from our own module URL
@@ -125,9 +125,14 @@ function requireManifest(packageName: string) {
   )
 }
 
-const frameworkConfigs: Record<'vue' | 'react', Omit<FrameworkConfig, 'includeSource'>> = {
+const frameworkConfigs: Record<Framework, Omit<FrameworkConfig, 'includeSource'>> = {
   vue: {
     framework: 'vue',
+    packageName: 'tdesign-icons-vue',
+    componentDir: 'esm/components',
+  },
+  'vue-next': {
+    framework: 'vue-next',
     packageName: 'tdesign-icons-vue-next',
     componentDir: 'esm/components',
   },
@@ -136,18 +141,22 @@ const frameworkConfigs: Record<'vue' | 'react', Omit<FrameworkConfig, 'includeSo
     packageName: 'tdesign-icons-react',
     componentDir: 'esm/components',
   },
+  'web-components': {
+    framework: 'web-components',
+    packageName: 'tdesign-icons-web-components',
+    componentDir: 'esm/components',
+  },
 }
 
 export const unpluginFactory = (options: Options = {}) => {
   const resolved: ResolvedOptions = {
-    framework: options.framework ?? 'vue',
+    framework: options.framework ?? 'vue-next',
     packageName: options.packageName,
     includeSource: options.includeSource ?? [],
     exclude: options.exclude ?? [/node_modules/],
   }
 
-  const frameworks: ('vue' | 'react')[] =
-    resolved.framework === 'both' ? ['vue', 'react'] : [resolved.framework]
+  const frameworks: Framework[] = [resolved.framework]
 
   const transformers = frameworks.map((framework) => {
     const base = frameworkConfigs[framework]

@@ -1,7 +1,7 @@
 {
   "name": "unplugin-tdesign-icons",
   "version": "0.1.0",
-  "description": "An unplugin for on-demand importing TDesign icons (vue-next & react). Auto rewrites `import { XxxIcon } from 'tdesign-icons-xxx'` to the exact icon module, avoiding bundling all 2000+ icons.",
+  "description": "An unplugin for on-demand importing TDesign icons (vue / vue-next / react / web-components). Auto rewrites `import { XxxIcon } from 'tdesign-icons-xxx'` to the exact icon module, avoiding bundling all 2000+ icons.",
   "license": "MIT",
   "type": "module",
   "files": [
@@ -9,96 +9,120 @@
   ],
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "types": "dist/index.d.mts",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
       },
       "require": {
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
     },
-    "./vue": {
+    "./TDesignIconsVue": {
       "import": {
-        "types": "./dist/vue.d.ts",
-        "default": "./dist/vue.js"
+        "types": "./dist/TDesignIconsVue.d.mts",
+        "default": "./dist/TDesignIconsVue.mjs"
       },
       "require": {
-        "types": "./dist/vue.d.cts",
-        "default": "./dist/vue.cjs"
+        "types": "./dist/TDesignIconsVue.d.mts",
+        "default": "./dist/TDesignIconsVue.mjs"
       }
     },
-    "./react": {
+    "./vue": "./dist/TDesignIconsVue.mjs",
+    "./TDesignIconsVueNext": {
       "import": {
-        "types": "./dist/react.d.ts",
-        "default": "./dist/react.js"
+        "types": "./dist/TDesignIconsVueNext.d.mts",
+        "default": "./dist/TDesignIconsVueNext.mjs"
       },
       "require": {
-        "types": "./dist/react.d.cts",
-        "default": "./dist/react.cjs"
+        "types": "./dist/TDesignIconsVueNext.d.mts",
+        "default": "./dist/TDesignIconsVueNext.mjs"
       }
     },
+    "./vue-next": "./dist/TDesignIconsVueNext.mjs",
+    "./TDesignIconsReact": {
+      "import": {
+        "types": "./dist/TDesignIconsReact.d.mts",
+        "default": "./dist/TDesignIconsReact.mjs"
+      },
+      "require": {
+        "types": "./dist/TDesignIconsReact.d.mts",
+        "default": "./dist/TDesignIconsReact.mjs"
+      }
+    },
+    "./react": "./dist/TDesignIconsReact.mjs",
+    "./TDesignIconsWebComponents": {
+      "import": {
+        "types": "./dist/TDesignIconsWebComponents.d.mts",
+        "default": "./dist/TDesignIconsWebComponents.mjs"
+      },
+      "require": {
+        "types": "./dist/TDesignIconsWebComponents.d.mts",
+        "default": "./dist/TDesignIconsWebComponents.mjs"
+      }
+    },
+    "./web-components": "./dist/TDesignIconsWebComponents.mjs",
     "./vite": {
       "import": {
-        "types": "./dist/vite.d.ts",
-        "default": "./dist/vite.js"
+        "types": "./dist/vite.d.mts",
+        "default": "./dist/vite.mjs"
       },
       "require": {
-        "types": "./dist/vite.d.ts",
-        "default": "./dist/vite.js"
+        "types": "./dist/vite.d.mts",
+        "default": "./dist/vite.mjs"
       }
     },
     "./rollup": {
       "import": {
-        "types": "./dist/rollup.d.ts",
-        "default": "./dist/rollup.js"
+        "types": "./dist/rollup.d.mts",
+        "default": "./dist/rollup.mjs"
       },
       "require": {
-        "types": "./dist/rollup.d.ts",
-        "default": "./dist/rollup.js"
+        "types": "./dist/rollup.d.mts",
+        "default": "./dist/rollup.mjs"
       }
     },
     "./rolldown": {
       "import": {
-        "types": "./dist/rolldown.d.ts",
-        "default": "./dist/rolldown.js"
+        "types": "./dist/rolldown.d.mts",
+        "default": "./dist/rolldown.mjs"
       },
       "require": {
-        "types": "./dist/rolldown.d.ts",
-        "default": "./dist/rolldown.js"
+        "types": "./dist/rolldown.d.mts",
+        "default": "./dist/rolldown.mjs"
       }
     },
     "./webpack": {
       "import": {
-        "types": "./dist/webpack.d.ts",
-        "default": "./dist/webpack.js"
+        "types": "./dist/webpack.d.mts",
+        "default": "./dist/webpack.mjs"
       },
       "require": {
-        "types": "./dist/webpack.d.ts",
-        "default": "./dist/webpack.js"
+        "types": "./dist/webpack.d.mts",
+        "default": "./dist/webpack.mjs"
       }
     },
     "./rspack": {
       "import": {
-        "types": "./dist/rspack.d.ts",
-        "default": "./dist/rspack.js"
+        "types": "./dist/rspack.d.mts",
+        "default": "./dist/rspack.mjs"
       },
       "require": {
-        "types": "./dist/rspack.d.ts",
-        "default": "./dist/rspack.js"
+        "types": "./dist/rspack.d.mts",
+        "default": "./dist/rspack.mjs"
       }
     },
     "./esbuild": {
       "import": {
-        "types": "./dist/esbuild.d.ts",
-        "default": "./dist/esbuild.js"
+        "types": "./dist/esbuild.d.mts",
+        "default": "./dist/esbuild.mjs"
       },
       "require": {
-        "types": "./dist/esbuild.d.ts",
-        "default": "./dist/esbuild.js"
+        "types": "./dist/esbuild.d.mts",
+        "default": "./dist/esbuild.mjs"
       }
     },
     "./package.json": "./package.json"
@@ -113,25 +137,34 @@
     "webpack",
     "rollup",
     "vue",
-    "react"
+    "react",
+    "web-components"
   ],
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
     "tdesign-icons-react": ">=0.6.0",
+    "tdesign-icons-vue": ">=0.4.0",
     "tdesign-icons-vue-next": ">=0.4.0",
+    "tdesign-icons-web-components": ">=0.3.0",
     "vite": "^4 || ^5 || ^6 || ^7"
   },
   "peerDependenciesMeta": {
     "tdesign-icons-react": {
       "optional": true
     },
+    "tdesign-icons-vue": {
+      "optional": true
+    },
     "tdesign-icons-vue-next": {
+      "optional": true
+    },
+    "tdesign-icons-web-components": {
       "optional": true
     },
     "vite": {
@@ -148,12 +181,16 @@
     "@rspack/core": "^2.1.8",
     "@types/node": "^22.10.2",
     "esbuild": "^0.28.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "rolldown": "^1.2.3",
     "rollup": "^4.30.0",
     "tdesign-icons-react": "^0.6.9",
+    "tdesign-icons-vue": "^0.4.9",
     "tdesign-icons-vue-next": "^0.4.9",
+    "tdesign-icons-web-components": "^0.3.7",
     "ts-loader": "^9.6.2",
-    "tsup": "^8.5.1",
+    "tsdown": "^0.22.14",
     "typescript": "^5.7.3",
     "vite": "^6.0.0",
     "vitest": "^2.1.8",
