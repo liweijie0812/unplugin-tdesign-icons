@@ -1,4 +1,23 @@
 $:
+  vscode:
+    - name: workspace
+      docker:
+        image: node:22
+      services:
+        - vscode
+        - docker
+      stages:
+        - name: install
+          # corepack 按根目录 package.json 的 packageManager 字段自动启用对应 pnpm 版本
+          script: |
+            corepack enable
+            pnpm install
+        - name: examples-install
+          script: |
+            for example in vite-vue3 vite-vue2 vite-react vite-web-components webpack-vue3 rollup-react rolldown-react rspack-react esbuild-react; do
+              echo "==> installing examples/$example"
+              (cd "examples/$example" && pnpm install) || exit 1
+            done
   push:
     - name: test-and-build
       docker:
