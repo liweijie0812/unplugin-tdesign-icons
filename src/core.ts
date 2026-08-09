@@ -4,6 +4,27 @@ import { MagicString } from 'magic-string'
 import { createRequire } from 'node:module'
 import type { Options, ResolvedOptions, FrameworkConfig, Framework, TransformResult } from './types.ts'
 
+// Lazy `@vue/compiler-sfc` loader — the SFC parser is huge (~1.5MB), so it is
+// never bundled and only loaded on demand for `.vue` files that actually need
+// `<script>`/`<template>` re-writing. When published it resolves against the
+// consumer's node_modules (aligned with the `vue` dependency they already have).
+type SFCParse = typeof import('@vue/compiler-sfc').parse
+// Template AST node — the shape differs across compiler-sfc versions, so keep
+// it structural (type: 1 for element nodes, loc/props/children as used below).
+type SFCAstNode = any
+
+let cachedSfcParse: SFCParse | null = null
+async function getSfcParse(): Promise<SFCParse | null> {
+  if (cachedSfcParse) return cachedSfcParse
+  try {
+    cachedSfcParse = (await import(/* @vite-ignore */ '@vue/compiler-sfc')).parse
+  } catch {
+    cachedSfcParse = null
+  }
+  return cachedSfcParse
+}
+
+/** A `<Icon name="...">` / `<t-icon name="...">` usage collected by `localIcons`. */
 interface IconUsage {
   component: string
   stem: string
@@ -26,40 +47,262 @@ const nodeRequire =
     : createRequire(import.meta.url)
 
 export function createTransformer(config: FrameworkConfig) {
-  let manifest: Map<string, string> | null = null
-  let manifestByName: Map<string, string> | null = null
+  let manifestData: { exportMap: Map<string, string>; nameToStem: Map<string, string>; stemToIcon: Map<string, string> } | null = null
 
-  function loadManifest(): Map<string, string> {
-    if (manifest) return manifest
+  function loadManifest() {
+    if (manifestData) return manifestData
 
     const manifestModule = requireManifest(config.packageName)
     const items = manifestModule.manifest ?? manifestModule.default?.manifest ?? []
-    const map = new Map<string, string>()
-    const byName = new Map<string, string>()
+    const exportMap = new Map<string, string>()
+    const nameToStem = new Map<string, string>()
+    const stemToIcon = new Map<string, string>()
     for (const item of Array.isArray(items) ? items : []) {
       if (item && typeof item.stem === 'string' && typeof item.icon === 'string') {
         // The barrel (`pkg/esm/index.js`) exports each icon as `manifest.icon + 'Icon'`,
         // e.g. `manifest.icon === 'Close'`  →  `export { default as CloseIcon }`.
         // A few icons already end with `Icon` (e.g. `FileIcon`, `Icon`), which yields
         // `FileIconIcon` / `IconIcon` — matching the real barrel export names.
-        map.set(`${item.icon}Icon`, item.stem)
-        // `<Icon name="sneer" />` uses the lowercase stem; map it to the
-        // deep component export name (e.g. `sneer` → `SneerIcon`).
-        byName.set(item.stem, `${item.icon}Icon`)
+        exportMap.set(`${item.icon}Icon`, item.stem)
+        // Reverse index used to resolve `<Icon name="...">` in Vue SFC templates:
+        //   `name="sneer"`    → stem `sneer`
+        //   `name="Chart3D"`  → stem `chart-3d`
+        //   `name="chart-3d"` → stem `chart-3d`
+        nameToStem.set(item.icon, item.stem)
+        nameToStem.set(item.stem, item.stem)
+        stemToIcon.set(item.stem, item.icon)
       }
     }
-    manifest = map
-    manifestByName = byName
-    return map
+    manifestData = { exportMap, nameToStem, stemToIcon }
+    return manifestData
   }
 
+  /**
+   * `<Icon name="...">` → deep single-icon component name lookup, used by the
+   * `localIcons` string scanner. Accepts the lowercase stem (`sneer`), the
+   * PascalCase icon (`Chart3D`) and the kebab-case stem (`chart-3d`), resolving
+   * them all to the barrel export name (`SneerIcon` / `Chart3DIcon`).
+   */
   function loadManifestByName(): Map<string, string> {
-    loadManifest()
-    return manifestByName!
+    const { nameToStem, stemToIcon } = loadManifest()
+    const byName = new Map<string, string>()
+    for (const [name, stem] of nameToStem) {
+      const iconName = stemToIcon.get(stem) ?? name
+      byName.set(name, `${iconName}Icon`)
+    }
+    return byName
   }
 
-  function transform(code: string): TransformResult {
-    const map = loadManifest()
+  /**
+   * Vue 3 SFC re-writing:
+   *
+   *   <script setup>
+   *   import { Icon } from 'tdesign-icons-vue-next'
+   *   </script>
+   *   <template>
+   *     <Icon name="sneer" size="large" />
+   *   </template>
+   *
+   * becomes
+   *
+   *   <script setup>
+   *   import SneerIcon from 'tdesign-icons-vue-next/esm/components/sneer.js'
+   *   </script>
+   *   <template>
+   *     <SneerIcon size="large" />
+   *   </template>
+   *
+   * Only static `<Icon name="...">` tags (no dynamic `:name`) whose icon exists
+   * are rewritten; anything else keeps the original `Icon` binding intact.
+   */
+  async function transformSfc(code: string, id: string): Promise<TransformResult> {
+    const parseSfc = await getSfcParse()
+    if (!parseSfc) return null
+
+    // `@vue/compiler-sfc`'s `parse` is non-throwing: errors accumulate in
+    // `errors` (a plain JS file yields "At least one <template> or <script> is
+    // required"). Bail out without touching the code.
+    const { descriptor, errors } = parseSfc(code, { filename: id })
+    if (errors.length || !descriptor.template?.ast || !descriptor.scriptSetup) return null
+
+    const { scriptSetup, template } = descriptor
+    // `scriptSetup.loc` spans the *content* (between the `<script setup ...>`
+    // opening and `</script>` closing tags) in both compiler-sfc v2 and v3.
+    const setupStart = scriptSetup.loc.start.offset
+    const setupEnd = scriptSetup.loc.end.offset
+    const { exportMap, nameToStem, stemToIcon } = loadManifest()
+
+    const setupCode = code.slice(setupStart, setupEnd)
+    let setupImports: readonly import('es-module-lexer').ImportSpecifier[]
+    try {
+      ;[setupImports] = parse(setupCode)
+    } catch {
+      // Unparseable <script setup> body (unusual TS/decorator syntax) — leave
+      // the whole file untouched rather than risk corrupting it.
+      return null
+    }
+
+    // Collect the icon-barrel import statements inside <script setup>.
+    const pkgImports: {
+      ss: number
+      se: number
+      statement: string
+      specifiers: { original: string; local: string; raw: string }[]
+    }[] = []
+    for (const imp of setupImports) {
+      if (imp.n !== config.packageName) continue
+      const statement = setupCode.slice(imp.ss, imp.se)
+      // Re-exports / type-only imports don't introduce a usable local binding.
+      if (/^export\b/.test(statement)) continue
+      if (/^import\s+type\b/.test(statement)) continue
+      const specifierMatch = statement.match(/\{([\s\S]*)\}/)
+      if (!specifierMatch) continue
+      const specifiers = specifierMatch[1]!
+        .split(',')
+        .map((n) => n.trim())
+        .filter(Boolean)
+        .map((raw) => {
+          const [original, alias] = raw.split(/\s+as\s+/)
+          return { original: original!.trim(), local: (alias ? alias.trim() : original!.trim()), raw }
+        })
+      pkgImports.push({ ss: imp.ss, se: imp.se, statement, specifiers })
+    }
+
+    // The template re-write only applies when `<Icon>` is explicitly bound to
+    // the icon barrel (`import { Icon } from 'tdesign-icons-xxx'`). Without it,
+    // `<Icon name>` is most likely a global/custom component — leave untouched.
+    const hasIconBinding = pkgImports.some((p) =>
+      p.specifiers.some((s) => s.local === 'Icon'),
+    )
+    if (!hasIconBinding) return null
+
+    // Scan the <template> AST for static `<Icon name="...">` tags.
+    const rewrites: {
+      tagStart: number
+      tagEnd: number
+      newTag: string
+      nameStart: number
+      nameEnd: number
+      stem: string
+    }[] = []
+    const sfcImports: { local: string; stem: string }[] = []
+    let templateChanged = false
+    const walk = (node: SFCAstNode) => {
+      if (!node || typeof node !== 'object') return
+      if (node.type === 1) {
+        if (node.tag === 'Icon') {
+          const staticNames = (node.props || []).filter(
+            (p: any) => p.type === 6 && p.name === 'name',
+          )
+          const dynamicName = (node.props || []).some(
+            (p: any) => p.type === 7 && (p.arg?.content === 'name' || !p.arg),
+          )
+          if (staticNames.length === 1 && !dynamicName) {
+            const name = staticNames[0].value.content
+            const stem = nameToStem.get(name)
+            if (stem) {
+              const iconName = stemToIcon.get(stem) ?? name
+              const local = `${iconName}Icon`
+              const tagStart = node.loc.start.offset
+              const tagEnd = tagStart + 1 + node.tag.length
+              const nameProp = staticNames[0]
+              let nameStart = nameProp.loc.start.offset
+              const nameEnd = nameProp.loc.end.offset
+              // Absorb the whitespace before `name="..."` so the rename
+              // (`<Icon name=... />` → `<SneerIcon />`) stays clean.
+              if (nameStart > 0 && /\s/.test(code[nameStart - 1])) nameStart -= 1
+              rewrites.push({ tagStart, tagEnd, newTag: local, nameStart, nameEnd, stem })
+              // Dedup: the same `<Icon name>` may appear multiple times.
+              if (!sfcImports.some((i) => i.local === local)) {
+                sfcImports.push({ local, stem })
+              }
+            } else {
+              // Un-rewritable `<Icon>` → the original `Icon` binding must stay.
+              templateChanged = true
+            }
+          } else {
+            // Un-rewritable `<Icon>` → the original `Icon` binding must stay.
+            templateChanged = true
+          }
+        }
+        for (const child of node.children || []) walk(child)
+      } else if (node.children) {
+        for (const child of node.children) walk(child)
+      }
+    }
+    walk(template.ast)
+
+    // Nothing to rewrite.
+    if (!sfcImports.length) return null
+
+    const s = new MagicString(code)
+    for (const rw of rewrites) {
+      // Replace only the tag *name* (`Icon` → `SneerIcon`), keeping the `<`.
+      s.overwrite(rw.tagStart + 1, rw.tagEnd, rw.newTag)
+      s.overwrite(rw.nameStart, rw.nameEnd, '')
+    }
+
+    const sfcLocals = new Set(sfcImports.map((i) => i.local))
+    // All package import ranges (setup-relative), used for the "Icon used
+    // elsewhere in the script body?" reference check.
+    const pkgRanges: [number, number][] = pkgImports.map((p) => [p.ss, p.se])
+    const isReferencedOutside = (name: string) => {
+      const re = new RegExp(`\\b${name}\\b`, 'g')
+      let m: RegExpExecArray | null
+      while ((m = re.exec(setupCode))) {
+        const idx = m.index
+        if (!pkgRanges.some(([s, e]) => idx >= s && idx < e)) return true
+      }
+      return false
+    }
+
+    const lines: string[] = []
+    // Host the generated deep imports in the import statement that carries the
+    // `Icon` specifier (guaranteed to exist by the `hasIconBinding` gate).
+    let hostPkg = pkgImports.find((p) => p.specifiers.some((s) => s.local === 'Icon'))
+    if (!hostPkg) hostPkg = pkgImports[0]
+    for (const pkg of pkgImports) {
+      const kept: string[] = []
+      const deep: { local: string; stem: string }[] = []
+      for (const spec of pkg.specifiers) {
+        const { original, local, raw } = spec
+        if (sfcLocals.has(local)) continue // introduced by the template rewrite
+        if (exportMap.has(original)) {
+          // Regular icon import (e.g. `CloseIcon`) → deep import.
+          deep.push({ local, stem: exportMap.get(original)! })
+          continue
+        }
+        if (original === 'Icon') {
+          // The dynamic `<Icon name>` component. Drop it only when every
+          // `<Icon>` in the template was rewritten AND it isn't referenced in
+          // the script body.
+          if (!templateChanged && !isReferencedOutside(local)) continue
+        }
+        kept.push(raw)
+      }
+      const stmtLines: string[] = []
+      if (kept.length) stmtLines.push(`import { ${kept.join(', ')} } from '${config.packageName}'`)
+      for (const d of deep) {
+        stmtLines.push(`import ${d.local} from '${config.packageName}/${config.componentDir}/${d.stem}.js'`)
+      }
+      if (pkg === hostPkg) {
+        for (const imp of sfcImports) {
+          stmtLines.push(`import ${imp.local} from '${config.packageName}/${config.componentDir}/${imp.stem}.js'`)
+        }
+      }
+      if (stmtLines.length) {
+        s.overwrite(setupStart + pkg.ss, setupStart + pkg.se, stmtLines.join('\n'))
+        lines.push(...stmtLines)
+      }
+    }
+
+    if (!rewrites.length && !lines.length) return null
+
+    return { code: s.toString(), map: s.generateMap({ hires: true }) }
+  }
+
+  async function transform(code: string, id?: string): Promise<TransformResult> {
+    const { exportMap } = loadManifest()
     const s = new MagicString(code)
     let changed = false
 
@@ -69,6 +312,26 @@ export function createTransformer(config: FrameworkConfig) {
     } catch {
       // Non-JS content (e.g. raw .vue SFC) can make the lexer throw.
       // Fall back to a permissive regex that only matches plain import statements.
+    }
+
+    // --- Vue 3 SFC `<Icon name="...">` template re-writing ---------------
+    // Two complementary, mutually-exclusive paths:
+    //
+    // 1. `localIcons` OFF (default): `.vue` files try the SFC pipeline first —
+    //    `@vue/compiler-sfc` parses `<script setup>` + `<template>` and rewrites
+    //    static `<Icon name="..." />` into single-icon components. If nothing
+    //    qualifies it falls through to the plain import rewriting below.
+    //    The cheap pre-filter avoids loading the (large) SFC parser for
+    //    icon-free files.
+    //
+    // 2. `localIcons` ON: the whole file (any extension, including `.vue`) is
+    //    handled by the string-masked tag scanner below, which also recognises
+    //    `<t-icon>` wrapper tags (`aliases`) and globally-registered icons.
+    //    The SFC pipeline is skipped so the two paths never double-rewrite the
+    //    same file.
+    if (!config.localIcons && /\.vue$/.test(id ?? '') && (code.includes(config.packageName) || /<Icon\b/.test(code))) {
+      const sfcResult = await transformSfc(code, id!)
+      if (sfcResult) return sfcResult
     }
 
     const stmts =
@@ -158,11 +421,11 @@ export function createTransformer(config: FrameworkConfig) {
         if (config.localIcons && rewritableBarrel.includes(original) && !iconStillUsed.has(local)) {
           continue
         }
-        if (!original || !map.has(original)) {
+        if (!original || !exportMap.has(original)) {
           barrelSpecifiers.push(name)
           continue
         }
-        const stem = map.get(original)!
+        const stem = exportMap.get(original)!
         const key = `${local}@${stem}`
         // Deduplicate repeated specifiers inside one statement and record the
         // deep import key so the `localIcons` inject pass can reuse it.
@@ -615,10 +878,10 @@ export const unpluginFactory = (options: Options = {}) => {
       }
       return true
     },
-    async transform(code: string) {
+    async transform(code: string, id: string) {
       await init
       for (const transformer of transformers) {
-        const result = transformer.transform(code)
+        const result = await transformer.transform(code, id)
         if (result) return result
       }
       return null

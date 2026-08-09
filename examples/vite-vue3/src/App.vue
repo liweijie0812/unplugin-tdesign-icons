@@ -1,20 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-// These named imports are rewritten at build time by
-// unplugin-tdesign-icons into single-icon deep imports, e.g.
-//   import CloseIcon from 'tdesign-icons-vue-next/esm/components/close.js'
-import {
-  AddIcon,
-  ChevronDownIcon,
-  CloseIcon,
-  HeartFilledIcon,
-  SearchIcon,
-  TimeIcon,
-  UserIcon,
-} from 'tdesign-icons-vue-next'
-// 开启 localIcons 后，下面的 `<Icon name="sneer" />` 会被插件改写为
-// `<SneerIcon />`，无需从 CDN 拉取 svg-sprite，离线也能渲染。
-// vue/vue-next 默认还会识别 TDesign Vue 组件库的 `<t-icon name="xxx" />` 封装。
+// `<Icon name="..." />` 是 TDesign 的通用图标组件（svg-sprite 渲染）。
+// 本插件在编译期把模板里的静态 `<Icon name="sneer" />` 改写为单图标组件
+// `<SneerIcon />`，并自动把 `Icon` 桶导入替换为深层单图标导入，例如：
+//   import SneerIcon from 'tdesign-icons-vue-next/esm/components/sneer.js'
+// 从而只打包实际用到的图标。
+// 开启 `localIcons` 后，下面的 `<t-icon name="xxx" />` 同样会被改写。
 import { Icon } from 'tdesign-icons-vue-next'
 
 const count = ref(0)
@@ -24,17 +15,17 @@ const count = ref(0)
   <main class="app">
     <h1>unplugin-tdesign-icons · Vue 3 + Vite</h1>
     <p class="hint">
-      源码里写的是桶导入，构建时被插件改写为单图标深层导入（只打包用到的图标）。
+      模板里写的是 <code>&lt;Icon name="xxx" /&gt;</code>，构建时被插件改写为单图标组件（只打包用到的图标）。
     </p>
 
     <div class="icons">
-      <div class="icon-card"><AddIcon /><span>AddIcon</span></div>
-      <div class="icon-card"><ChevronDownIcon /><span>ChevronDownIcon</span></div>
-      <div class="icon-card"><CloseIcon /><span>CloseIcon</span></div>
-      <div class="icon-card"><HeartFilledIcon /><span>HeartFilledIcon</span></div>
-      <div class="icon-card"><SearchIcon /><span>SearchIcon</span></div>
-      <div class="icon-card"><TimeIcon /><span>TimeIcon</span></div>
-      <div class="icon-card"><UserIcon /><span>UserIcon</span></div>
+      <div class="icon-card"><Icon name="add" /><span>add</span></div>
+      <div class="icon-card"><Icon name="chevron-down" /><span>chevron-down</span></div>
+      <div class="icon-card"><Icon name="close" /><span>close</span></div>
+      <div class="icon-card"><Icon name="heart-filled" /><span>heart-filled</span></div>
+      <div class="icon-card"><Icon name="search" /><span>search</span></div>
+      <div class="icon-card"><Icon name="time" /><span>time</span></div>
+      <div class="icon-card"><Icon name="user" /><span>user</span></div>
       <!-- localIcons 演示：构建时改写为 <SneerIcon />，离线渲染 -->
       <div class="icon-card"><Icon name="sneer" /><span>Icon name="sneer"</span></div>
       <!-- TDesign Vue 组件库的 <t-icon> 封装同样会被改写 -->

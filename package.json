@@ -53,6 +53,7 @@
     "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
+    "@vue/compiler-sfc": "^2.7.0 || ^3.0.0",
     "tdesign-icons-react": ">=0.6.0",
     "tdesign-icons-vue": ">=0.4.0",
     "tdesign-icons-vue-next": ">=0.4.0",
@@ -60,6 +61,9 @@
     "vite": "^4 || ^5 || ^6 || ^7"
   },
   "peerDependenciesMeta": {
+    "@vue/compiler-sfc": {
+      "optional": true
+    },
     "tdesign-icons-react": {
       "optional": true
     },
@@ -85,6 +89,8 @@
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rspack/core": "^2.1.8",
     "@types/node": "^22.10.2",
+    "@vitejs/plugin-vue": "5.2.4",
+    "@vue/compiler-sfc": "3.5.41",
     "esbuild": "^0.28.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -99,6 +105,7 @@
     "typescript": "^5.7.3",
     "vite": "^6.0.0",
     "vitest": "^2.1.8",
+    "vue": "3.5.41",
     "webpack": "^5.109.2"
   },
   "publishConfig": {

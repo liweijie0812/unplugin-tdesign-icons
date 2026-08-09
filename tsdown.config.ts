@@ -33,7 +33,7 @@ export default defineConfig({
   hash: false,
   target: ['esnext'],
   deps: {
-    neverBundle: ['unplugin', 'es-module-lexer', 'magic-string'],
+    neverBundle: ['unplugin', 'es-module-lexer', 'magic-string', '@vue/compiler-sfc'],
     dts: {
       neverBundle: true,
     },
