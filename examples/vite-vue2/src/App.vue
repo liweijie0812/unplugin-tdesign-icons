@@ -1,34 +1,29 @@
 <template>
   <main class="app">
     <h1>unplugin-tdesign-icons · Vue 2 + Vite</h1>
-    <p class="hint">源码写桶导入，构建时被插件改写为单图标深层导入（只打包用到的图标）。</p>
+    <p class="hint">
+      经典 SFC（Options API）里写 &lt;Icon name="..." /&gt;，构建时被插件改写为单图标深层组件并自动更新 components 注册（只打包用到的图标）。
+    </p>
     <div class="icons">
-      <div class="icon-card"><AddIcon /><span>AddIcon</span></div>
-      <div class="icon-card"><ChevronDownIcon /><span>ChevronDownIcon</span></div>
-      <div class="icon-card"><CloseIcon /><span>CloseIcon</span></div>
-      <div class="icon-card"><HeartFilledIcon /><span>HeartFilledIcon</span></div>
-      <div class="icon-card"><SearchIcon /><span>SearchIcon</span></div>
-      <div class="icon-card"><TimeIcon /><span>TimeIcon</span></div>
-      <div class="icon-card"><UserIcon /><span>UserIcon</span></div>
+      <div class="icon-card"><Icon name="add" /><span>add</span></div>
+      <div class="icon-card"><Icon name="chevron-down" /><span>chevron-down</span></div>
+      <div class="icon-card"><Icon name="close" /><span>close</span></div>
+      <div class="icon-card"><Icon name="heart-filled" /><span>heart-filled</span></div>
+      <div class="icon-card"><Icon name="search" /><span>search</span></div>
+      <div class="icon-card"><Icon name="time" /><span>time</span></div>
+      <div class="icon-card"><Icon name="user" /><span>user</span></div>
     </div>
   </main>
 </template>
 
 <script>
-// 构建时被 unplugin-tdesign-icons 改写为单图标深层导入，例如：
-//   import CloseIcon from 'tdesign-icons-vue/esm/components/close.js'
-import {
-  AddIcon,
-  ChevronDownIcon,
-  CloseIcon,
-  HeartFilledIcon,
-  SearchIcon,
-  TimeIcon,
-  UserIcon,
-} from 'tdesign-icons-vue'
+// 经典 SFC（Vue 2 Options API）：构建时被 unplugin-tdesign-icons 改写，例如
+//   <Icon name="close" /> → <CloseIcon />（自动注册并深层导入 close.js）
+import { Icon } from 'tdesign-icons-vue'
 
 export default {
   name: 'App',
+  components: { Icon },
 }
 </script>
 

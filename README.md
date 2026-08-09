@@ -24,7 +24,7 @@ import CloseIcon from 'tdesign-icons-vue-next/esm/components/close.js'
 - 🔌 **多构建工具**：基于 [unplugin](https://github.com/unjs/unplugin)，一套代码支持 Vite / Rollup / Webpack / esbuild / Rspack / Farm 等；
 - 🗺️ **零配置映射**：直接从图标包内置的 `esm/manifest.js` 读取 `图标名 ↔ 文件名` 映射，无需手动维护；
 - 🛡️ **安全解析**：基于 `es-module-lexer` 精确解析 import 语句，字符串/注释中的伪导入不会被误伤；
-- 🎯 **SFC 模板改写**：Vue 3 `<script setup>` 中静态 `<Icon name="..." />` 自动改写为单图标组件 `<SneerIcon />`；
+- 🎯 **SFC 模板改写**：`<script setup>`（Vue 2.7+/Vue 3）与 Vue 2 经典 `<script>` 中的静态 `<Icon name="..." />` 自动改写为单图标组件 `<SneerIcon />`；
 - ✂️ **智能混用**：同一行里图标 + 非图标（如 `IconBase`）导入会拆成多条，非图标保留桶导入。
 
 ## 安装
@@ -80,9 +80,9 @@ export default {
 
 > 只需在构建工具配置里启用一次插件，源码里的 `import { XxxIcon } from 'tdesign-icons-xxx'` 会在编译期被自动改写为单图标深层导入。
 
-### Vue 3 SFC 模板改写（`<Icon name="..." />`）
+### Vue SFC 模板改写（`<Icon name="..." />`）
 
-对 Vue 3 `<script setup>` 单文件组件，插件还会把模板里的**静态** `<Icon name="..." />` 改写为单图标组件，并自动移除不再需要的 `Icon` 桶导入：
+对 Vue 3 `<script setup>` 或 Vue 2 经典 `<script>`（Options API）单文件组件，插件会把模板里的**静态** `<Icon name="..." />` 改写为单图标组件，并自动注入对应的深层导入：
 
 ```vue
 <script setup>
@@ -104,15 +104,44 @@ import SneerIcon from 'tdesign-icons-vue-next/esm/components/sneer.js'
 </template>
 ```
 
+Vue 2 经典 `<script>`（Options API）写法同样支持，改写后会**自动更新 `components` 注册**（Vue 2 运行时通过 `components` 选项解析模板里的组件名）：
+
+```vue
+<script>
+import { Icon } from 'tdesign-icons-vue'
+export default {
+  name: 'App',
+  components: { Icon }
+}
+</script>
+<template>
+  <Icon name="sneer" size="large" />
+</template>
+```
+
+会被编译为：
+
+```vue
+<script>
+import SneerIcon from 'tdesign-icons-vue/esm/components/sneer.js'
+export default {
+  name: 'App',
+  components: { SneerIcon }
+}
+</script>
+<template>
+  <SneerIcon size="large" />
+</template>
+```
+
 规则与说明：
 
-- **只处理静态 `name`**：动态名称（`:name="iconName"`）和不存在的图标名称保持原样，`Icon` 导入会继续保留；
+- **只处理静态 `name`**：动态名称（`:name="iconName"`）和不存在的图标名称保持原样，`Icon` 导入/注册会继续保留；
 - **`name` 支持多种写法**：`sneer`、`Chart3D`、`chart-3d` 均可正确解析到对应图标；
 - **图标名以 `Icon` 结尾**的（如 `file-icon` → `FileIconIcon`）也能正确处理；
 - 模板里同时有**可改写与不可改写**的 `<Icon>` 时，`Icon` 桶导入保留给不可改写的那部分；
+- **经典 `<script>` 需 `components: { Icon }` 注册**：没有注册时 `<Icon>` 被视为全局/自定义组件，模板不做改写（普通 import 改写仍生效）；
 - 需要 `@vue/compiler-sfc`：优先使用项目自身已安装的版本（与 `vue` 依赖对齐），未安装时该功能自动降级，仅保留普通的 import 改写。
-
-> 该功能目前覆盖 Vue 3 `<script setup>`；Vue 2 或经典 `<script>` 写法不参与模板改写，但仍会进行普通的 import 改写。
 
 ### 构建工具子路径
 
