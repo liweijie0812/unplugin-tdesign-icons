@@ -4,10 +4,11 @@ import type { Framework, Options } from './types.ts'
 
 /**
  * Build an esbuild plugin factory pre-bound to a framework.
+ * The framework is fixed by the entry, so the `framework` option is ignored.
  */
 function frameworkEsbuild(framework: Framework) {
   return /* #__PURE__ */ createUnplugin((options: Options | undefined = {}) =>
-    unpluginFactory({ ...options, framework: options?.framework ?? framework }),
+    unpluginFactory(framework, options),
   ).esbuild
 }
 
@@ -24,15 +25,3 @@ export const TDesignIconsVue = frameworkEsbuild('vue')
 export const TDesignIconsVueNext = frameworkEsbuild('vue-next')
 export const TDesignIconsReact = frameworkEsbuild('react')
 export const TDesignIconsWebComponents = frameworkEsbuild('web-components')
-
-const esbuild = createUnplugin(unpluginFactory).esbuild
-
-Object.assign(esbuild, {
-  TDesignIconsVue,
-  TDesignIconsVueNext,
-  TDesignIconsReact,
-  TDesignIconsWebComponents,
-})
-
-export default esbuild
-export { esbuild as 'module.exports' }

@@ -7,18 +7,13 @@
  */
 export type Framework = 'vue' | 'vue-next' | 'react' | 'web-components'
 
+/**
+ * Plugin options. Every public entry is bound to one framework
+ * (`TDesignIconsVue` / `TDesignIconsVueNext` / `TDesignIconsReact` /
+ * `TDesignIconsWebComponents` and the named factories on the build-tool
+ * subpaths), so the framework itself is not a user-facing option here.
+ */
 export interface Options {
-  /**
-   * Which TDesign icons package to optimize.
-   *
-   * @default 'vue-next'
-   */
-  framework?: Framework
-  /**
-   * Override the icon package name. Useful when you alias the package.
-   * @default the package mapped from `framework`
-   */
-  packageName?: string
   /**
    * Rewrite `<Icon name="xxx" />` (the svg-sprite `Icon` component that
    * loads the CDN iconfont by default) into the corresponding deep
@@ -57,7 +52,6 @@ export interface Options {
 
 export interface ResolvedOptions {
   framework: Framework
-  packageName?: string
   localIcons: boolean
   aliases: Record<string, string>
   includeSource: string[]

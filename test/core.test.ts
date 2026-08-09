@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import unplugin from '../src/core'
+import { unpluginFactory } from '../src/core'
 import type { TransformResult } from '../src/types'
 
 type Framework = 'vue' | 'vue-next' | 'react' | 'web-components'
@@ -12,7 +12,7 @@ const PACKAGE: Record<Framework, string> = {
 }
 
 async function runTransform(code: string, framework: Framework = 'react', id = '/project/src/App.tsx') {
-  const plugin = (unplugin.raw as any)({ framework }, { framework: 'rollup' } as any)
+  const plugin = unpluginFactory(framework)
   const result = (await plugin.transform.call({}, code, id)) as TransformResult
   return result ? result.code : null
 }
@@ -73,10 +73,7 @@ describe('unplugin-tdesign-icons core transform', () => {
   })
 
   it('skips node_modules by default', async () => {
-    const plugin = (unplugin.raw as any)(
-      { framework: 'react' },
-      { framework: 'rollup' } as any,
-    )
+    const plugin = unpluginFactory('react')
     const id = '/project/node_modules/pkg/index.js'
     expect(plugin.transformInclude(id)).toBe(false)
   })
@@ -167,10 +164,7 @@ import { CloseIcon } from 'tdesign-icons-vue-next'
 })
 
 async function runLocalIcons(code: string, framework: Framework = 'react', id = '/project/src/App.tsx') {
-  const plugin = (unplugin.raw as any)(
-    { framework, localIcons: true },
-    { framework: 'rollup' } as any,
-  )
+  const plugin = unpluginFactory(framework, { localIcons: true })
   const result = (await plugin.transform.call({}, code, id)) as TransformResult
   return result ? result.code : null
 }
@@ -247,7 +241,7 @@ export const A = ({ n }) => <div><Icon name="sneer" /><Icon name={n} /></div>`
   it('does not touch Icon when localIcons is disabled', async () => {
     const code = `import { Icon } from 'tdesign-icons-react'
 export const A = () => <Icon name="sneer" />`
-    const plugin = (unplugin.raw as any)({ framework: 'react' }, { framework: 'rollup' } as any)
+    const plugin = unpluginFactory('react')
     const result = (await plugin.transform.call({}, code, '/project/src/App.tsx')) as TransformResult
     expect(result).toBeNull()
   })
@@ -314,10 +308,7 @@ export default {}
   it('custom aliases option works for react <t-icon> wrappers', async () => {
     const code = `import { Icon } from 'tdesign-icons-react'
 export const A = () => <t-icon name="sneer" />`
-    const plugin = (unplugin.raw as any)(
-      { framework: 'react', localIcons: true, aliases: { 't-icon': 'Icon' } },
-      { framework: 'rollup' } as any,
-    )
+    const plugin = unpluginFactory('react', { localIcons: true, aliases: { 't-icon': 'Icon' } })
     const result = (await plugin.transform.call({}, code, '/project/src/App.tsx')) as TransformResult
     const out = result ? result.code : null
     expect(out).toContain(`import SneerIcon from 'tdesign-icons-react/esm/components/sneer.js'`)

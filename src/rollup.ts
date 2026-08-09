@@ -4,10 +4,11 @@ import type { Framework, Options } from './types.ts'
 
 /**
  * Build a Rollup plugin factory pre-bound to a framework.
+ * The framework is fixed by the entry, so the `framework` option is ignored.
  */
 function frameworkRollup(framework: Framework) {
   return /* #__PURE__ */ createUnplugin((options: Options | undefined = {}) =>
-    unpluginFactory({ ...options, framework: options?.framework ?? framework }),
+    unpluginFactory(framework, options),
   ).rollup
 }
 
@@ -24,15 +25,3 @@ export const TDesignIconsVue = frameworkRollup('vue')
 export const TDesignIconsVueNext = frameworkRollup('vue-next')
 export const TDesignIconsReact = frameworkRollup('react')
 export const TDesignIconsWebComponents = frameworkRollup('web-components')
-
-const rollup = createUnplugin(unpluginFactory).rollup
-
-Object.assign(rollup, {
-  TDesignIconsVue,
-  TDesignIconsVueNext,
-  TDesignIconsReact,
-  TDesignIconsWebComponents,
-})
-
-export default rollup
-export { rollup as 'module.exports' }

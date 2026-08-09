@@ -8,9 +8,12 @@ import type { Options } from './types.ts'
  * ```ts
  * import TDesignIconsReact from 'unplugin-tdesign-icons/TDesignIconsReact'
  * ```
+ *
+ * The framework is fixed to `react` by this entry, so there is no
+ * `framework` option.
  */
 const TDesignIconsReact = /* #__PURE__ */ createUnplugin((options: Options = {}) => {
-  return unpluginFactory({ ...options, framework: options.framework ?? 'react' })
+  return unpluginFactory('react', options)
 })
 
 export default TDesignIconsReact

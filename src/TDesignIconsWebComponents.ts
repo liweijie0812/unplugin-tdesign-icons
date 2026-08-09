@@ -8,12 +8,12 @@ import type { Options } from './types.ts'
  * ```ts
  * import TDesignIconsWebComponents from 'unplugin-tdesign-icons/TDesignIconsWebComponents'
  * ```
+ *
+ * The framework is fixed to `web-components` by this entry, so there is no
+ * `framework` option.
  */
 const TDesignIconsWebComponents = /* #__PURE__ */ createUnplugin((options: Options = {}) => {
-  return unpluginFactory({
-    ...options,
-    framework: options.framework ?? 'web-components',
-  })
+  return unpluginFactory('web-components', options)
 })
 
 export default TDesignIconsWebComponents

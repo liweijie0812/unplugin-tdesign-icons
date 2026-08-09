@@ -13,5 +13,3 @@
  *     types.ts           — internal shared types
  */
 export { unpluginFactory } from './core/plugin.ts'
-export { unplugin } from './core/plugin.ts'
-export { default } from './core/plugin.ts'

@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import unplugin from '../src/core'
+import { unpluginFactory } from '../src/core'
 import type { TransformResult } from '../src/types'
 
 async function runTransform(code: string, framework: 'vue' | 'vue-next' = 'vue-next', id = '/project/src/App.vue') {
-  const plugin = (unplugin.raw as any)({ framework }, { framework: 'rollup' } as any)
+  const plugin = unpluginFactory(framework)
   const result = (await plugin.transform.call({}, code, id)) as TransformResult
   return result ? result.code : null
 }

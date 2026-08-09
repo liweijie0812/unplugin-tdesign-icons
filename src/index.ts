@@ -1,6 +1,4 @@
 export * from './types.ts'
-export { default } from './core.ts'
-export { unpluginFactory } from './core.ts'
 export { default as TDesignIconsVue } from './TDesignIconsVue.ts'
 export { default as TDesignIconsVueNext } from './TDesignIconsVueNext.ts'
 export { default as TDesignIconsReact } from './TDesignIconsReact.ts'

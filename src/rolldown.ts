@@ -4,10 +4,11 @@ import type { Framework, Options } from './types.ts'
 
 /**
  * Build a Rolldown plugin factory pre-bound to a framework.
+ * The framework is fixed by the entry, so the `framework` option is ignored.
  */
 function frameworkRolldown(framework: Framework) {
   return /* #__PURE__ */ createRolldownPlugin((options: Options | undefined = {}) =>
-    unpluginFactory({ ...options, framework: options?.framework ?? framework }),
+    unpluginFactory(framework, options),
   )
 }
 
@@ -24,15 +25,3 @@ export const TDesignIconsVue = frameworkRolldown('vue')
 export const TDesignIconsVueNext = frameworkRolldown('vue-next')
 export const TDesignIconsReact = frameworkRolldown('react')
 export const TDesignIconsWebComponents = frameworkRolldown('web-components')
-
-const rolldown = createRolldownPlugin(unpluginFactory)
-
-Object.assign(rolldown, {
-  TDesignIconsVue,
-  TDesignIconsVueNext,
-  TDesignIconsReact,
-  TDesignIconsWebComponents,
-})
-
-export default rolldown
-export { rolldown as 'module.exports' }

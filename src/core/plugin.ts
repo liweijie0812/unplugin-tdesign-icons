@@ -1,5 +1,4 @@
 import { init } from 'es-module-lexer'
-import { createUnplugin } from 'unplugin'
 import type { Framework, FrameworkConfig, Options, ResolvedOptions } from '../types.ts'
 import { createTransformer } from './transformer.ts'
 
@@ -29,16 +28,15 @@ const frameworkConfigs: Record<
   },
 }
 
-export const unpluginFactory = (options: Options = {}) => {
+export const unpluginFactory = (framework: Framework, options: Options = {}) => {
   const resolved: ResolvedOptions = {
-    framework: options.framework ?? 'vue-next',
-    packageName: options.packageName,
+    framework,
     localIcons: options.localIcons ?? false,
     // TDesign Vue 组件库把 `Icon` 封装为 `<t-icon>`（全局注册），默认识别它；
     // 用户可传入 `aliases` 自定义其它封装标签。React/Web Components 无此约定。
     aliases:
       options.aliases ??
-      (options.framework === 'vue' || options.framework === 'vue-next'
+      (framework === 'vue' || framework === 'vue-next'
         ? { 't-icon': 'Icon' }
         : {}),
     includeSource: options.includeSource ?? [],
@@ -51,7 +49,6 @@ export const unpluginFactory = (options: Options = {}) => {
     const base = frameworkConfigs[framework]
     const config: FrameworkConfig = {
       ...base,
-      packageName: resolved.packageName ?? base.packageName,
       includeSource: resolved.includeSource,
       localIcons: resolved.localIcons,
       aliases: resolved.aliases,
@@ -87,7 +84,3 @@ export const unpluginFactory = (options: Options = {}) => {
     },
   }
 }
-
-export const unplugin = /* #__PURE__ */ createUnplugin(unpluginFactory)
-
-export default unplugin

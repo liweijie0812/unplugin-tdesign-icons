@@ -8,9 +8,12 @@ import type { Options } from './types.ts'
  * ```ts
  * import TDesignIconsVue from 'unplugin-tdesign-icons/TDesignIconsVue'
  * ```
+ *
+ * The framework is fixed to `vue` by this entry, so there is no
+ * `framework` option.
  */
 const TDesignIconsVue = /* #__PURE__ */ createUnplugin((options: Options = {}) => {
-  return unpluginFactory({ ...options, framework: options.framework ?? 'vue' })
+  return unpluginFactory('vue', options)
 })
 
 export default TDesignIconsVue

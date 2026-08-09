@@ -25,7 +25,7 @@ describe('multi-bundler integration (Vite / Rollup / Rolldown / Webpack / Rspack
       root: __dirname,
       logLevel: 'silent',
       build: { write: false, minify: false, rollupOptions: { input: fixture } },
-      plugins: [plugin.vite({ framework: 'react' })],
+      plugins: [plugin.vite({})],
     })
     if (Array.isArray(result) || !('output' in result)) throw new Error('unexpected build result')
     const out = result
@@ -42,7 +42,7 @@ describe('multi-bundler integration (Vite / Rollup / Rolldown / Webpack / Rspack
       input: fixture,
       plugins: [
         nodeResolve({ extensions: ['.ts', '.js', '.mjs'] }),
-        plugin.rollup({ framework: 'react' }),
+        plugin.rollup({}),
       ],
       external: [/^react/],
       onwarn: () => {},
@@ -58,7 +58,7 @@ describe('multi-bundler integration (Vite / Rollup / Rolldown / Webpack / Rspack
     const { rolldown } = await import('rolldown')
     const b = await rolldown({
       input: fixture,
-      plugins: [plugin.rolldown({ framework: 'react' })],
+      plugins: [plugin.rolldown({})],
       external: [/^react/],
     })
     const { output } = await b.generate({ format: 'esm' })
@@ -86,7 +86,7 @@ describe('multi-bundler integration (Vite / Rollup / Rolldown / Webpack / Rspack
           },
         ],
       },
-      plugins: [plugin.webpack({ framework: 'react' })],
+      plugins: [plugin.webpack({})],
       stats: 'errors-only',
     })
 
@@ -119,7 +119,7 @@ describe('multi-bundler integration (Vite / Rollup / Rolldown / Webpack / Rspack
           },
         ],
       },
-      plugins: [plugin.rspack({ framework: 'react' })],
+      plugins: [plugin.rspack({})],
       stats: 'errors-only',
     })
 
@@ -136,7 +136,7 @@ describe('multi-bundler integration (Vite / Rollup / Rolldown / Webpack / Rspack
 
   it('esbuild: rewrites on-demand and bundles only used icons', { timeout: TIMEOUT }, async () => {
     const esbuild = await import('esbuild')
-    const esbuildPlugin = plugin.esbuild({ framework: 'react' })
+    const esbuildPlugin = plugin.esbuild({})
     const plugins = Array.isArray(esbuildPlugin) ? esbuildPlugin : [esbuildPlugin]
     const result = await esbuild.build({
       entryPoints: [fixture],

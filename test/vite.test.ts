@@ -15,7 +15,7 @@ describe('vite integration', () => {
         minify: false,
         rollupOptions: { input: entry },
       },
-      plugins: [reactPlugin.vite({ framework: 'react' })],
+      plugins: [reactPlugin.vite({})],
     })
 
     const output = Array.isArray(result) ? result[0] : result
@@ -42,7 +42,7 @@ describe('vite integration — localIcons (offline <Icon name>)', () => {
         minify: false,
         rollupOptions: { input: localEntry },
       },
-      plugins: [reactPlugin.vite({ framework: 'react', localIcons: true })],
+      plugins: [reactPlugin.vite({ localIcons: true })],
     })
 
     const output = Array.isArray(result) ? result[0] : result

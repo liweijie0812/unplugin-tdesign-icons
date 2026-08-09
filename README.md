@@ -108,7 +108,7 @@ export default {
 }
 ```
 
-每个构建工具子路径都导出四个框架工厂：`TDesignIconsVue` / `TDesignIconsVueNext` / `TDesignIconsReact` / `TDesignIconsWebComponents`，已固定对应框架，无需再传 `framework`。
+每个构建工具子路径都导出四个框架工厂：`TDesignIconsVue` / `TDesignIconsVueNext` / `TDesignIconsReact` / `TDesignIconsWebComponents`，已固定对应框架，无需（也不能）再传 `framework`。
 
 > 只需在构建工具配置里启用一次插件，源码里的 `import { XxxIcon } from 'tdesign-icons-xxx'` 会在编译期被自动改写为单图标深层导入。
 
@@ -186,7 +186,7 @@ export default {
 | Rspack | `unplugin-tdesign-icons/rspack` | `TDesignIconsReact()` |
 | esbuild | `unplugin-tdesign-icons/esbuild` | `TDesignIconsReact()` |
 
-> 每个子路径也保留默认导出（通用插件工厂，需传 `framework` 指定目标包），用法与 unplugin-icons 一致：`import Icons from 'unplugin-tdesign-icons/vite'` → `Icons({ framework: 'vue-next' })`。
+> 每个子路径**不再提供默认导出**：所有入口都已固定对应框架，`framework` 不是对外选项。
 
 ### Vue 3 + Vite
 
@@ -293,19 +293,9 @@ import { TDesignIconsReact } from 'unplugin-tdesign-icons/esbuild'
 build({ plugins: [TDesignIconsReact()] })
 ```
 
-### 通用工厂用法（unplugin-icons 风格）
-
-每个构建工具子路径同时保留**默认导出**：它是通用插件工厂，不预设框架，需通过 `framework` 选项指定目标包：
-
-```ts
-// vite.config.ts
-import Icons from 'unplugin-tdesign-icons/vite'
-export default defineConfig({ plugins: [Icons({ framework: 'vue-next' /* options */ })] })
-```
-
 ### 框架分包入口（可选）
 
-每个图标包也提供独立的**框架分包入口**，命名与图标包一一对应（`TDesignIconsVue` / `TDesignIconsVueNext` / `TDesignIconsReact` / `TDesignIconsWebComponents`），也提供 `vue` / `vue-next` / `react` / `web-components` 四个短别名。它们已固定 `framework`，无需再传 `framework`，但需要手动调用对应构建工具的工厂方法（`.vite()` / `.rollup()` / `.webpack()` / `.esbuild()` 等）：
+每个图标包也提供独立的**框架分包入口**，命名与图标包一一对应（`TDesignIconsVue` / `TDesignIconsVueNext` / `TDesignIconsReact` / `TDesignIconsWebComponents`），也提供 `vue` / `vue-next` / `react` / `web-components` 四个短别名。它们已固定 `framework`（`framework` 不是对外选项），但需要手动调用对应构建工具的工厂方法（`.vite()` / `.rollup()` / `.webpack()` / `.esbuild()` 等）：
 
 ```ts
 // vite.config.ts
@@ -363,10 +353,6 @@ export default defineConfig({
 
 ```ts
 TDesignIconsVueNext({
-  // 要优化的图标包（通用工厂需传；各框架分包入口已固定）
-  framework: 'vue-next',
-  // 覆盖图标包名（如使用别名时）
-  // packageName: 'tdesign-icons-vue-next',
   // 把 `<Icon name="xxx" />` 在编译期改写为单图标组件，离线渲染、不再请求 CDN
   localIcons: true,
   // 组件库封装标签 → 桶导出的映射（vue/vue-next 默认识别 `<t-icon>`）
@@ -378,16 +364,15 @@ TDesignIconsVueNext({
 })
 ```
 
+> 框架分包入口（`TDesignIconsVue` / `TDesignIconsVueNext` / `TDesignIconsReact` / `TDesignIconsWebComponents`）和各构建工具子路径的具名框架工厂**已固定框架，`framework` 不是对外选项**，无需（也不能）再传。
+
 | 名称 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `framework` | `'vue' \| 'vue-next' \| 'react' \| 'web-components'` | `'vue-next'` | 要优化的图标包 |
-| `packageName` | `string` | 按 framework | 覆盖图标包名（如使用别名时） |
 | `localIcons` | `boolean` | `false` | 把 `<Icon name="xxx" />` 在编译期改写为对应单图标组件 `<XxxIcon />`，离线渲染、不再请求 CDN svg-sprite |
 | `aliases` | `Record<string, string>` | vue/vue-next 默认 `{ 't-icon': 'Icon' }`，其余 `{}` | 组件库封装标签 → 桶导出的映射，`localIcons` 据此改写 `<t-icon name="xxx" />` 等自定义标签 |
 | `includeSource` | `string[]` | `[]` | 只处理路径包含这些片段的文件 |
 | `exclude` | `(string \| RegExp)[]` | `[/node_modules/]` | 跳过的路径 |
 
-> 直接使用主入口 `unplugin-tdesign-icons`（其默认导出同样是插件工厂，可 `Icons(options)` 调用）时必须用 `framework` 选项指定目标包。
 
 ## 无网络环境：`localIcons` 开关
 
