@@ -3,16 +3,16 @@ import { unpluginFactory } from './core.ts'
 import type { Options } from './types.ts'
 
 /**
- * Entry for `tdesign-icons-web-components` (Web Components).
+ * `tdesign-icons-web-components`（Web Components）的入口。
  *
  * ```ts
  * import TDesignIconsWebComponents from 'unplugin-tdesign-icons/TDesignIconsWebComponents'
  * ```
  *
- * The framework is fixed to `web-components` by this entry, so there is no
- * `framework` option.
+ * 该入口把框架固定为 `web-components`，因此无需再传 `framework` 选项。
  */
 const TDesignIconsWebComponents = /* #__PURE__ */ createUnplugin((options: Options = {}) => {
+  // 调用统一的工厂函数，并把框架固定为 web-components
   return unpluginFactory('web-components', options)
 })
 

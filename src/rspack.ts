@@ -3,8 +3,8 @@ import { unpluginFactory } from './core.ts'
 import type { Framework, Options } from './types.ts'
 
 /**
- * Build a Rspack plugin factory pre-bound to a framework.
- * The framework is fixed by the entry, so the `framework` option is ignored.
+ * 构建一个已绑定到指定框架的 Rspack 插件工厂。
+ * 框架由入口固定，因此 `framework` 选项会被忽略。
  */
 function frameworkRspack(framework: Framework) {
   return /* #__PURE__ */ createRspackPlugin((options: Options | undefined = {}) =>
@@ -13,7 +13,7 @@ function frameworkRspack(framework: Framework) {
 }
 
 /**
- * Framework-specific Rspack plugin factories.
+ * 各框架对应的 Rspack 插件工厂。
  *
  * ```js
  * const { TDesignIconsReact } = require('unplugin-tdesign-icons/rspack')

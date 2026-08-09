@@ -1,50 +1,47 @@
 /**
- * Which TDesign icons package to optimize.
- * - `'vue'`            → `tdesign-icons-vue` (Vue 2)
- * - `'vue-next'`       → `tdesign-icons-vue-next` (Vue 3)
- * - `'react'`          → `tdesign-icons-react` (React)
- * - `'web-components'` → `tdesign-icons-web-components` (Web Components)
+ * 要优化的 TDesign 图标包。
+ * - `'vue'`            → `tdesign-icons-vue`（Vue 2）
+ * - `'vue-next'`       → `tdesign-icons-vue-next`（Vue 3）
+ * - `'react'`          → `tdesign-icons-react`（React）
+ * - `'web-components'` → `tdesign-icons-web-components`（Web Components）
  */
 export type Framework = 'vue' | 'vue-next' | 'react' | 'web-components'
 
 /**
- * Plugin options. Every public entry is bound to one framework
- * (`TDesignIconsVue` / `TDesignIconsVueNext` / `TDesignIconsReact` /
- * `TDesignIconsWebComponents` and the named factories on the build-tool
- * subpaths), so the framework itself is not a user-facing option here.
+ * 插件选项。每个公共入口都已绑定到一个框架
+ *（`TDesignIconsVue` / `TDesignIconsVueNext` / `TDesignIconsReact` /
+ * `TDesignIconsWebComponents`，以及各构建工具子路径下的具名工厂），
+ * 因此框架本身并不是用户侧可配置的选项。
  */
 export interface Options {
   /**
-   * Rewrite `<Icon name="xxx" />` (the svg-sprite `Icon` component that
-   * loads the CDN iconfont by default) into the corresponding deep
-   * single-icon component (`<XxxIcon />`) at build time.
+   * 在构建期把 `<Icon name="xxx" />`（默认会从 CDN 加载 iconfont 的
+   * svg-sprite `Icon` 组件）改写成对应的深层单图标组件 `<XxxIcon />`。
    *
-   * This makes the icons render with the locally-bundled SVG data, so they
-   * work in offline / intranet environments where the CDN sprite
-   * (`https://tdesign.gtimg.com/...`) is unreachable.
+   * 这样图标会使用本地打包的 SVG 数据渲染，在无法访问 CDN sprite
+   *（`https://tdesign.gtimg.com/...`）的离线 / 内网环境中也能正常工作。
    *
    * @default false
    */
   localIcons?: boolean
   /**
-   * Extra tag names that map to the barrel `Icon` component, so `localIcons`
-   * can also rewrite `<t-icon name="xxx" />` style wrappers at build time.
+   * 映射到桶 `Icon` 组件的额外标签名，让 `localIcons` 在构建期也能改写
+   * `<t-icon name="xxx" />` 这类封装标签。
    *
-   * Key = the tag used in templates (e.g. `'t-icon'`), value = the barrel
-   * export it wraps (usually `'Icon'`). This is useful when your component
-   * library wraps TDesign `Icon` behind a convenience tag.
+   * Key = 模板中使用的标签（例如 `'t-icon'`），value = 它包装的桶导出名
+   *（通常是 `'Icon'`）。当你的组件库把 TDesign `Icon` 封装成便捷标签时很有用。
    *
-   * @default `{ 't-icon': 'Icon' }` for vue / vue-next (TDesign Vue 组件库默认)
+   * @default `{ 't-icon': 'Icon' }`（vue / vue-next，TDesign Vue 组件库默认）
    */
   aliases?: Record<string, string>
   /**
-   * Extra path fragments used to decide which files get transformed.
-   * By default the plugin rewrites imports of the target icon package
-   * wherever they appear (except `exclude`d paths).
+   * 用于决定哪些文件会被转换的额外路径片段。
+   * 默认情况下插件会在所有出现目标图标包导入的位置进行改写
+   *（`exclude` 排除的路径除外）。
    */
   includeSource?: string[]
   /**
-   * Paths to skip. Accepts RegExp or string fragments.
+   * 需要跳过的路径。支持 RegExp 或字符串片段。
    * @default [/node_modules/]
    */
   exclude?: (string | RegExp)[]

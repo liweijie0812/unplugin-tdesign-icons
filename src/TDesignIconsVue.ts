@@ -3,16 +3,16 @@ import { unpluginFactory } from './core.ts'
 import type { Options } from './types.ts'
 
 /**
- * Entry for `tdesign-icons-vue` (Vue 2).
+ * `tdesign-icons-vue`（Vue 2）的入口。
  *
  * ```ts
  * import TDesignIconsVue from 'unplugin-tdesign-icons/TDesignIconsVue'
  * ```
  *
- * The framework is fixed to `vue` by this entry, so there is no
- * `framework` option.
+ * 该入口把框架固定为 `vue`，因此无需再传 `framework` 选项。
  */
 const TDesignIconsVue = /* #__PURE__ */ createUnplugin((options: Options = {}) => {
+  // 调用统一的工厂函数，并把框架固定为 vue
   return unpluginFactory('vue', options)
 })
 

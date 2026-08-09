@@ -3,8 +3,8 @@ import { unpluginFactory } from './core.ts'
 import type { Framework, Options } from './types.ts'
 
 /**
- * Build a Vite plugin factory pre-bound to a framework.
- * The framework is fixed by the entry, so the `framework` option is ignored.
+ * 构建一个已绑定到指定框架的 Vite 插件工厂。
+ * 框架由入口固定，因此 `framework` 选项会被忽略。
  */
 function frameworkVite(framework: Framework) {
   return /* #__PURE__ */ createUnplugin((options: Options | undefined = {}) =>
@@ -13,7 +13,7 @@ function frameworkVite(framework: Framework) {
 }
 
 /**
- * Framework-specific Vite plugin factories.
+ * 各框架对应的 Vite 插件工厂。
  *
  * ```ts
  * import { TDesignIconsVueNext } from 'unplugin-tdesign-icons/vite'

@@ -1,30 +1,30 @@
 /**
- * Internal shared types used across the `core/` modules.
- * These are implementation details — the public API types live in `src/types.ts`.
+ * `core/` 各模块间共享的内部类型。
+ * 这些属于实现细节 —— 公共 API 类型定义在 `src/types.ts`。
  */
 
-// Lazy `@vue/compiler-sfc` loader — the SFC parser is huge (~1.5MB), so it is
-// never bundled and only loaded on demand for `.vue` files that actually need
-// `<script>`/`<template>` re-writing. When published it resolves against the
-// consumer's node_modules (aligned with the `vue` dependency they already have).
+// 懒加载 `@vue/compiler-sfc` 加载器 —— SFC 解析器体积很大（约 1.5MB），
+// 因此它永远不会被打包，只在确实需要对 `.vue` 文件做 `<script>`/`<template>`
+// 改写时才按需加载。发布后它解析的是使用方 node_modules 中的包
+//（与使用方已有的 `vue` 依赖对齐）。
 export type SFCParse = typeof import('@vue/compiler-sfc').parse
 
-// Template AST node — the shape differs across compiler-sfc versions, so keep
-// it structural (type: 1 for element nodes, loc/props/children as used below).
+// 模板 AST 节点 —— 不同 compiler-sfc 版本的节点形状不同，因此保持结构类型
+//（type 为 1 表示元素节点，loc/props/children 按下方用法使用）。
 export type SFCAstNode = any
 
-/** Offsets (script-relative) inside a classic `<script>` (Options API). */
+/** 经典 `<script>`（Options API）内、相对 script 起始位置的偏移量。 */
 export interface ComponentRegistrations {
-  /** Offsets (script-relative) of the `components` value object `{ ... }`. */
+  /** `components` 值对象 `{ ... }` 的起始偏移（相对 script 内容）。 */
   valueStart: number
   valueEnd: number
-  /** All properties inside the `components` object (for safe re-emission). */
+  /** `components` 对象内的全部属性（用于安全地重新输出）。 */
   props: { start: number; end: number; raw: string }[]
-  /** Registrations whose value references one of the icon-barrel locals. */
+  /** 值引用了某个图标桶本地名的注册项。 */
   regs: { tag: string; local: string; start: number; end: number; removed?: boolean }[]
 }
 
-/** A `<Icon name="...">` / `<t-icon name="...">` usage collected by `localIcons`. */
+/** 由 `localIcons` 收集到的一处 `<Icon name="...">` / `<t-icon name="...">` 用法。 */
 export interface IconUsage {
   component: string
   stem: string
@@ -38,6 +38,6 @@ export interface IconUsage {
 
 export interface IconUsageCollection {
   usages: IconUsage[]
-  /** Local names that still have (non-convertible) `<Icon ...>` references. */
+  /** 仍存在（不可转换的）`<Icon ...>` 引用的本地名称。 */
   stillUsed: Set<string>
 }

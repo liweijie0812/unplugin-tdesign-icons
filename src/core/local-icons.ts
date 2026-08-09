@@ -1,25 +1,23 @@
 import type { IconUsage, IconUsageCollection } from './types.ts'
 
 /**
- * Match a `name="..."` / `name='...'` attribute value inside a tag's
- * attribute string. Returns the raw quoted value (e.g. `sneer`).
+ * 匹配标签属性字符串中的 `name="..."` / `name='...'` 属性值，
+ * 返回带引号的原始值（例如 `sneer`）。
  */
 const NAME_ATTR_RE = /(?:^|\s)name\s*=\s*['"]([^'"]+)['"]/
 
-/** Lowercase the first letter: `Icon` → `icon`, `TIcon` → `tIcon`. */
+/** 首字母小写：`Icon` → `icon`，`TIcon` → `tIcon`。 */
 export function lowerFirst(s: string) {
   return s ? s[0]!.toLowerCase() + s.slice(1) : s
 }
 
 /**
- * Return a copy of `code` (same length) where the contents of string literals,
- * template literals, line/block comments and HTML comments are replaced with
- * spaces. This lets the tag scanner skip `<Icon ...>` that appears inside a
- * string or comment instead of being a real component usage.
+ * 返回 `code` 的一份副本（长度相同），其中字符串字面量、模板字符串、
+ * 行/块注释以及 HTML 注释的内容会被替换为空格。这样标签扫描器就不会把
+ * 出现在字符串或注释里的 `<Icon ...>` 误当成真实的组件用法。
  *
- * Quotes inside a `<tag ...>` are treated as attribute delimiters (kept as-is)
- * so `name="sneer"` survives — the caller re-extracts the real attribute
- * text from the original `code` via the matched indices.
+ * `<tag ...>` 内的引号会被当作属性分隔符（原样保留），因此 `name="sneer"`
+ * 能保留下来 —— 调用方会通过匹配到的下标从原始 `code` 中重新提取真实属性文本。
  */
 export function maskStringsAndComments(code: string): string {
   const chars = code.split('')
@@ -31,6 +29,7 @@ export function maskStringsAndComments(code: string): string {
   let inBlockComment = false
   let inHtmlComment = false
 
+  // 把 [start, end) 区间内的字符（换行符除外）替换为空格
   const maskRange = (start: number, end: number) => {
     for (let j = Math.max(0, start); j < Math.min(n, end); j++) {
       if (chars[j] !== '\n') chars[j] = ' '
@@ -44,14 +43,14 @@ export function maskStringsAndComments(code: string): string {
     const after3 = i + 3 < n ? chars[i + 3] : ''
 
     if (!inString) {
-      // Line comment `// ...`
+      // 行注释 `// ...`
       if (inLineComment) {
         if (c === '\n') inLineComment = false
         else chars[i] = ' '
         i++
         continue
       }
-      // Block comment `/* ... */`
+      // 块注释 `/* ... */`
       if (inBlockComment) {
         if (c === '*' && next === '/') {
           chars[i] = ' '
@@ -64,7 +63,7 @@ export function maskStringsAndComments(code: string): string {
         }
         continue
       }
-      // HTML comment `<!-- ... -->` (Vue SFC templates)
+      // HTML 注释 `<!-- ... -->`（Vue SFC 模板）
       if (inHtmlComment) {
         if (c === '-' && next === '-' && after2 === '>') {
           maskRange(i, i + 3)
@@ -97,7 +96,7 @@ export function maskStringsAndComments(code: string): string {
       }
     }
 
-    // String / template literal (outside of a tag's attribute area)
+    // 字符串 / 模板字面量（在标签属性区域之外）
     if (!inString && !inTag && (c === '"' || c === "'" || c === '`')) {
       inString = c
       chars[i] = ' '
@@ -106,6 +105,7 @@ export function maskStringsAndComments(code: string): string {
     }
     if (inString) {
       chars[i] = ' '
+      // 跳过转义字符（如 `\"`）
       if (c === '\\' && i + 1 < n) {
         chars[i + 1] = ' '
         i += 2
@@ -116,7 +116,7 @@ export function maskStringsAndComments(code: string): string {
       continue
     }
 
-    // Track `<tag ...>` regions so quotes inside are treated as attributes.
+    // 跟踪 `<tag ...>` 区域，让其中的引号按属性处理而不是字符串
     if (c === '<' && /[A-Za-z!/]/.test(next || ' ')) {
       inTag = true
       i++
@@ -134,10 +134,10 @@ export function maskStringsAndComments(code: string): string {
 }
 
 /**
- * Decide where to inject new `import` lines:
- * - inside the `<script>` block of a `.vue` SFC (after its opening tag);
- * - otherwise after the last existing import statement;
- * - else at the very start of the file.
+ * 决定新的 `import` 行插入到哪里：
+ * - `.vue` SFC 的 `<script>` 块内（在其开标签之后）；
+ * - 否则在最后一条已有 import 语句之后；
+ * - 都没有则放在文件最开头。
  */
 export function findInjectPosition(code: string, stmts: { start: number; end: number }[]): number {
   const scriptMatch = /<script[^>]*>/g.exec(code)
@@ -154,6 +154,15 @@ export function findInjectPosition(code: string, stmts: { start: number; end: nu
   return 0
 }
 
+/**
+ * 扫描代码，收集所有可转换为深层单图标组件的 `<Icon ...>` / `<t-icon ...>` 用法。
+ *
+ * @param code 原始代码
+ * @param localNames 桶 `Icon` 组件在本文件中的本地名（含别名）
+ * @param aliases 额外封装标签映射（如 `{ 't-icon': 'Icon' }`）
+ * @param byName 图标名 → 深层组件名的查找表
+ * @returns 收集到的用法列表，以及仍保留引用的本地名集合
+ */
 export function collectIconUsages(
   code: string,
   localNames: string[],
@@ -161,19 +170,18 @@ export function collectIconUsages(
   byName: Map<string, string>,
 ): IconUsageCollection {
   const usages: IconUsage[] = []
-  // A local name starts out "used" and is only cleared when a concrete
-  // `<Xxx name="...">` usage of it is rewritten to a deep component.
+  // 本地名初始为「仍在使用」，只有当它的一处具体 `<Xxx name="...">` 用法
+  // 被改写成深层组件后才被清除。
   const stillUsed = new Set<string>(localNames)
 
-  // In Vue templates an imported PascalCase component can be used as
-  // `<Icon>`, `<icon>` or `<t-icon>` — accept those variants for each local
-  // name so the tag gets rewritten regardless of casing.
+  // 在 Vue 模板中，导入的 PascalCase 组件可写作 `<Icon>`、`<icon>` 或 `<t-icon>`，
+  // 为每个本地名接受这些变体，确保标签无论如何大小写都能被改写。
   const accepted = new Set<string>()
   const canonicalOf = new Map<string, string>()
   for (const name of localNames) {
     accepted.add(name)
     accepted.add(lowerFirst(name))
-    // PascalCase → kebab-case (`Icon` → `icon`, `MyIcon` → `my-icon`)
+    // PascalCase → kebab-case（`Icon` → `icon`，`MyIcon` → `my-icon`）
     accepted.add(
       name
         .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
@@ -183,14 +191,13 @@ export function collectIconUsages(
     for (const variant of accepted) canonicalOf.set(variant, name)
   }
 
-  // Extra convenience tags that wrap the barrel `Icon` component — e.g.
-  // `<t-icon name="sneer" />` from a component library that re-exports
-  // TDesign `Icon` under a short alias. The tag maps to the barrel local
-  // name (usually `Icon`).
+  // 包装桶 `Icon` 组件的额外便捷标签 —— 例如组件库把 TDesign `Icon`
+  // 用短别名再导出后形成的 `<t-icon name="sneer" />`。标签映射到桶本地名
+  //（通常为 `Icon`）。
   //
-  // A tag is NOT overridden if a local binding already produces it as a
-  // kebab-case variant (e.g. `import { Icon as TIcon }` → `<t-icon>`), so the
-  // still-used tracking stays attached to the real local binding.
+  // 如果本地绑定已经以 kebab-case 变体的形式产生了该标签
+  //（例如 `import { Icon as TIcon }` → `<t-icon>`），则不会被覆盖，
+  // 这样「仍在使用」的跟踪仍然挂在真实的本地绑定上。
   for (const [tag, barrelLocal] of Object.entries(aliases ?? {})) {
     if (!canonicalOf.has(tag)) {
       accepted.add(tag)
@@ -198,11 +205,10 @@ export function collectIconUsages(
     }
   }
 
-  // Match any `<Icon ...>` / `<icon ...>` / `<Icon ... />` opening tag.
-  // Group 1 = tag name, group 2 = attribute string (excluding the final `>`).
-  // We scan a "masked" copy of the code where string literals, template
-  // literals and comments are blanked out, so `<Icon name="..." />` inside a
-  // string/comment is never mistaken for a real component usage.
+  // 匹配任意 `<Icon ...>` / `<icon ...>` / `<Icon ... />` 开标签。
+  // 分组 1 = 标签名，分组 2 = 属性字符串（不含末尾的 `>`）。
+  // 我们在字符串/模板/注释已被置空的「掩码」副本上扫描，因此字符串或注释里
+  // 的 `<Icon name="..." />` 绝不会被误认为真实组件用法。
   const tagRe = /<([A-Za-z][\w-]*)\b([^>]*)>/g
   const masked = maskStringsAndComments(code)
   let m: RegExpExecArray | null
@@ -211,40 +217,39 @@ export function collectIconUsages(
     if (!accepted.has(tagName)) continue
     const canonical = canonicalOf.get(tagName)!
 
-    // Re-extract the real attribute text from the original code (the masked
-    // copy blanked out the string contents, but the indices are unchanged).
+    // 从原始代码重新提取真实属性文本（掩码副本置空了字符串内容，但下标不变）
     const attrStart = m.index + (m[0].length - m[2].length)
     const attrsRaw = code.slice(attrStart, m.index + m[0].length - 1)
     const nameMatch = NAME_ATTR_RE.exec(attrsRaw)
     if (!nameMatch) {
-      // No static `name="..."` — e.g. `<Icon />` or `:name`/`name={expr}`.
+      // 没有静态 `name="..."` —— 例如 `<Icon />` 或 `:name`/`name={expr}`。
       stillUsed.add(canonical)
       continue
     }
     const iconName = nameMatch[1]
     const component = byName.get(iconName)
     if (!component) {
+      // 图标名不在 manifest 中，无法转换
       stillUsed.add(canonical)
       continue
     }
-    // This usage is convertible — the local name may become unused.
+    // 该用法可转换 —— 本地名可能因此不再被使用
     stillUsed.delete(canonical)
     const selfClosing = /\/>\s*$/.test(m[0]) || /\/\s*>$/.test(m[0])
     const openTagStart = m.index
     const openTagEnd = m.index + m[0].length
 
-    // Strip the `name="..."` attribute from the tag so the component keeps
-    // its remaining props (e.g. `size`, `onClick`). For self-closing tags the
-    // trailing ` /` is removed too (the transform re-appends it).
+    // 从标签中移除 `name="..."` 属性，保留其它 props（如 `size`、`onClick`）。
+    // 自闭合标签的结尾 ` /` 也会被移除（转换时会重新追加）。
     let attrs = attrsRaw.replace(NAME_ATTR_RE, '').replace(/\s*\/\s*$/, '')
-    // Normalize leftover whitespace (e.g. `  size="x"` → ` size="x"`).
+    // 规整多余空白（例如 `  size="x"` → ` size="x"`）
     attrs = attrs.replace(/^\s+/, ' ').replace(/\s+$/, '')
 
     let closeTagStart = -1
     let closeTagEnd = -1
     if (!selfClosing) {
-      // Find the matching closing tag `</Icon>` (or `</icon>`) — search the
-      // masked copy so a `</Icon>` inside a string/comment is not matched.
+      // 寻找匹配的闭合标签 `</Icon>`（或 `</icon>`）—— 在掩码副本上查找，
+      // 这样字符串/注释里的 `</Icon>` 不会被匹配到。
       const closeRe = new RegExp(`</${tagName}\s*>`, 'g')
       closeRe.lastIndex = openTagEnd
       const closeMatch = closeRe.exec(masked)

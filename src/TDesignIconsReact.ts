@@ -3,16 +3,16 @@ import { unpluginFactory } from './core.ts'
 import type { Options } from './types.ts'
 
 /**
- * Entry for `tdesign-icons-react` (React).
+ * `tdesign-icons-react`（React）的入口。
  *
  * ```ts
  * import TDesignIconsReact from 'unplugin-tdesign-icons/TDesignIconsReact'
  * ```
  *
- * The framework is fixed to `react` by this entry, so there is no
- * `framework` option.
+ * 该入口把框架固定为 `react`，因此无需再传 `framework` 选项。
  */
 const TDesignIconsReact = /* #__PURE__ */ createUnplugin((options: Options = {}) => {
+  // 调用统一的工厂函数，并把框架固定为 react
   return unpluginFactory('react', options)
 })
 

@@ -2,6 +2,8 @@ import { init } from 'es-module-lexer'
 import type { Framework, FrameworkConfig, Options, ResolvedOptions } from '../types.ts'
 import { createTransformer } from './transformer.ts'
 
+// 各框架对应的图标包配置：包名与组件深层目录。
+// 公共 API 的「目录结构」被固定为 `esm/components`（TDesign 图标包的内部布局）。
 const frameworkConfigs: Record<
   Framework,
   Omit<FrameworkConfig, 'includeSource' | 'localIcons' | 'aliases'>
@@ -28,7 +30,12 @@ const frameworkConfigs: Record<
   },
 }
 
+/**
+ * unplugin 工厂函数：生成插件对象并绑定到指定框架。
+ * 每个公共入口（TDesignIconsVue 等）都会调用它，框架在入口处已固定。
+ */
 export const unpluginFactory = (framework: Framework, options: Options = {}) => {
+  // 合并默认值与用户选项，得到解析后的配置
   const resolved: ResolvedOptions = {
     framework,
     localIcons: options.localIcons ?? false,
@@ -43,8 +50,10 @@ export const unpluginFactory = (framework: Framework, options: Options = {}) => 
     exclude: options.exclude ?? [/node_modules/],
   }
 
+  // 当前仅支持单一框架（后续若要支持多框架可扩展为数组）
   const frameworks: Framework[] = [resolved.framework]
 
+  // 为每个框架创建独立的转换器，并注入解析后的配置
   const transformers = frameworks.map((framework) => {
     const base = frameworkConfigs[framework]
     const config: FrameworkConfig = {
@@ -56,16 +65,22 @@ export const unpluginFactory = (framework: Framework, options: Options = {}) => 
     return createTransformer(config)
   })
 
+  // 只处理 JS/TS（含 JSX/TSX）、Vue SFC 与 ESM 后缀的文件
   const fileExtensionRe = /\.(j|t)sx?$|\.vue$|\.mjs$/
 
   return {
     name: 'unplugin-tdesign-icons',
+    // 在其它插件之前执行，优先改写图标导入
     enforce: 'pre' as const,
+    // 判断某个文件是否需要进入转换流程
     transformInclude(id: string) {
+      // 1. 后缀不在白名单内，跳过
       if (!fileExtensionRe.test(id)) return false
+      // 2. 命中 exclude 规则（RegExp 或字符串片段），跳过
       if (resolved.exclude.some((re) => (re instanceof RegExp ? re.test(id) : id.includes(re)))) {
         return false
       }
+      // 3. 配置了 includeSource 时，路径必须包含其中某个片段
       if (
         resolved.includeSource.length &&
         !resolved.includeSource.some((s) => id.includes(s))
@@ -74,7 +89,9 @@ export const unpluginFactory = (framework: Framework, options: Options = {}) => 
       }
       return true
     },
+    // 对命中的文件执行转换：依次尝试各框架的转换器，拿到第一个非空结果即返回
     async transform(code: string, id: string) {
+      // es-module-lexer 是异步初始化的（WASM），先确保初始化完成
       await init
       for (const transformer of transformers) {
         const result = await transformer.transform(code, id)
