@@ -76,8 +76,8 @@ describe('build-tool subpath entries', () => {
   })
 
   it('vite: named factories ignore a redundant framework field', async () => {
-    // The framework is fixed by the entry, so passing `framework` must not
-    // switch it (framework 参数在框架分包入口是多余的).
+    // The framework is fixed by the build-tool entry, so passing `framework`
+    // must not switch it.
     const plugin = TDesignIconsVueNext({ framework: 'react' } as any) as any
     const id = '/project/src/App.vue'
     const result = await plugin.transform.call(

@@ -1,7 +1,13 @@
-import { describe, it, expect, beforeAll } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { createRequire } from 'node:module'
 import fs from 'node:fs'
 import path from 'node:path'
+import { TDesignIconsReact as vitePlugin } from '../../src/vite'
+import { TDesignIconsReact as rollupPlugin } from '../../src/rollup'
+import { TDesignIconsReact as rolldownPlugin } from '../../src/rolldown'
+import { TDesignIconsReact as webpackPlugin } from '../../src/webpack'
+import { TDesignIconsReact as rspackPlugin } from '../../src/rspack'
+import { TDesignIconsReact as esbuildPlugin } from '../../src/esbuild'
 
 const require = createRequire(import.meta.url)
 const fixture = path.resolve(__dirname, 'fixture-react.ts')
@@ -10,11 +16,6 @@ const fixture = path.resolve(__dirname, 'fixture-react.ts')
 // path data but no barrel import of `tdesign-icons-react`.
 const CLOSE_SVG = 'M16.9503 7.05029L12.0005 12'
 const hasBarrel = (code: string) => /from\s*['"]tdesign-icons-react['"]/.test(code)
-
-let plugin: any
-beforeAll(async () => {
-  plugin = (await import('../../src/TDesignIconsReact')).default
-})
 
 describe('multi-bundler integration (Vite / Rollup / Rolldown / Webpack / Rspack / esbuild)', () => {
   const TIMEOUT = 60_000
@@ -25,7 +26,7 @@ describe('multi-bundler integration (Vite / Rollup / Rolldown / Webpack / Rspack
       root: __dirname,
       logLevel: 'silent',
       build: { write: false, minify: false, rollupOptions: { input: fixture } },
-      plugins: [plugin.vite({})],
+      plugins: [vitePlugin({})],
     })
     if (Array.isArray(result) || !('output' in result)) throw new Error('unexpected build result')
     const out = result
@@ -42,7 +43,7 @@ describe('multi-bundler integration (Vite / Rollup / Rolldown / Webpack / Rspack
       input: fixture,
       plugins: [
         nodeResolve({ extensions: ['.ts', '.js', '.mjs'] }),
-        plugin.rollup({}),
+        rollupPlugin({}),
       ],
       external: [/^react/],
       onwarn: () => {},
@@ -58,7 +59,7 @@ describe('multi-bundler integration (Vite / Rollup / Rolldown / Webpack / Rspack
     const { rolldown } = await import('rolldown')
     const b = await rolldown({
       input: fixture,
-      plugins: [plugin.rolldown({})],
+      plugins: [rolldownPlugin({})],
       external: [/^react/],
     })
     const { output } = await b.generate({ format: 'esm' })
@@ -86,7 +87,7 @@ describe('multi-bundler integration (Vite / Rollup / Rolldown / Webpack / Rspack
           },
         ],
       },
-      plugins: [plugin.webpack({})],
+      plugins: [webpackPlugin({})],
       stats: 'errors-only',
     })
 
@@ -119,7 +120,7 @@ describe('multi-bundler integration (Vite / Rollup / Rolldown / Webpack / Rspack
           },
         ],
       },
-      plugins: [plugin.rspack({})],
+      plugins: [rspackPlugin({})],
       stats: 'errors-only',
     })
 
@@ -136,14 +137,14 @@ describe('multi-bundler integration (Vite / Rollup / Rolldown / Webpack / Rspack
 
   it('esbuild: rewrites on-demand and bundles only used icons', { timeout: TIMEOUT }, async () => {
     const esbuild = await import('esbuild')
-    const esbuildPlugin = plugin.esbuild({})
-    const plugins = Array.isArray(esbuildPlugin) ? esbuildPlugin : [esbuildPlugin]
+    const plugin = esbuildPlugin({})
+    const esbuildPlugins = Array.isArray(plugin) ? plugin : [plugin]
     const result = await esbuild.build({
       entryPoints: [fixture],
       bundle: true,
       write: false,
       format: 'esm',
-      plugins,
+      plugins: esbuildPlugins,
       logLevel: 'silent',
     })
     const code = result.outputFiles[0].text

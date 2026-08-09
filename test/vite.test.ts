@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import path from 'node:path'
 import { build } from 'vite'
-import reactPlugin from '../src/TDesignIconsReact'
+import { TDesignIconsReact } from '../src/vite'
 
 const entry = path.resolve(__dirname, 'fixtures/entry.ts')
 
@@ -15,7 +15,7 @@ describe('vite integration', () => {
         minify: false,
         rollupOptions: { input: entry },
       },
-      plugins: [reactPlugin.vite({})],
+      plugins: [TDesignIconsReact({})],
     })
 
     const output = Array.isArray(result) ? result[0] : result
@@ -42,7 +42,7 @@ describe('vite integration — localIcons (offline <Icon name>)', () => {
         minify: false,
         rollupOptions: { input: localEntry },
       },
-      plugins: [reactPlugin.vite({ localIcons: true })],
+      plugins: [TDesignIconsReact({ localIcons: true })],
     })
 
     const output = Array.isArray(result) ? result[0] : result

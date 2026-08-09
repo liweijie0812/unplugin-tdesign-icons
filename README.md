@@ -293,29 +293,6 @@ import { TDesignIconsReact } from 'unplugin-tdesign-icons/esbuild'
 build({ plugins: [TDesignIconsReact()] })
 ```
 
-### 框架分包入口（可选）
-
-每个图标包也提供独立的**框架分包入口**，命名与图标包一一对应（`TDesignIconsVue` / `TDesignIconsVueNext` / `TDesignIconsReact` / `TDesignIconsWebComponents`），也提供 `vue` / `vue-next` / `react` / `web-components` 四个短别名。它们已固定 `framework`（`framework` 不是对外选项），但需要手动调用对应构建工具的工厂方法（`.vite()` / `.rollup()` / `.webpack()` / `.esbuild()` 等）：
-
-```ts
-// vite.config.ts
-import TDesignIconsVueNext from 'unplugin-tdesign-icons/TDesignIconsVueNext'
-import TDesignIconsVue from 'unplugin-tdesign-icons/TDesignIconsVue'
-import TDesignIconsReact from 'unplugin-tdesign-icons/TDesignIconsReact'
-import TDesignIconsWebComponents from 'unplugin-tdesign-icons/TDesignIconsWebComponents'
-
-export default defineConfig({
-  plugins: [
-    TDesignIconsVueNext.vite(),          // Vue 3
-    TDesignIconsVue.vite(),              // Vue 2
-    TDesignIconsReact.vite(),            // React
-    TDesignIconsWebComponents.vite(),    // Web Components
-  ],
-})
-```
-
-> 框架分包入口主要为兼容旧用法而保留。新项目推荐直接使用上面的构建工具子路径 + 具名框架工厂（`import { TDesignIconsVueNext } from 'unplugin-tdesign-icons/vite'`）。
-
 ## 示例（Examples）
 
 参考 unplugin-icons，本仓库在 [`examples/`](./examples) 提供了可直接运行的示例工程，覆盖 Vue 2 / Vue 3 / React / Web Components 与 Vite / Webpack / Rollup / Rolldown / Rspack / esbuild 等主流组合：
@@ -364,7 +341,6 @@ TDesignIconsVueNext({
 })
 ```
 
-> 框架分包入口（`TDesignIconsVue` / `TDesignIconsVueNext` / `TDesignIconsReact` / `TDesignIconsWebComponents`）和各构建工具子路径的具名框架工厂**已固定框架，`framework` 不是对外选项**，无需（也不能）再传。
 
 | 名称 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |

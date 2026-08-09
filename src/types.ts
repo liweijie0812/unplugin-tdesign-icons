@@ -8,9 +8,7 @@
 export type Framework = 'vue' | 'vue-next' | 'react' | 'web-components'
 
 /**
- * 插件选项。每个公共入口都已绑定到一个框架
- *（`TDesignIconsVue` / `TDesignIconsVueNext` / `TDesignIconsReact` /
- * `TDesignIconsWebComponents`，以及各构建工具子路径下的具名工厂），
+ * 插件选项。各构建工具子路径下的具名工厂已绑定到对应框架，
  * 因此框架本身并不是用户侧可配置的选项。
  */
 export interface Options {
