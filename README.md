@@ -24,67 +24,22 @@ import CloseIcon from 'tdesign-icons-vue-next/esm/components/close.js'
 ## 特性
 
 - 🚀 **按需引入**：只转换显式导入的图标，绝不全量引入；
-- 🧩 **四套框架入口**：Vue 2 / Vue 3 / React / Web Components 各一个分包入口，互不干扰；
-- 🔌 **多构建工具**：基于 [unplugin](https://github.com/unjs/unplugin)，一套代码支持 Vite / Rollup / Webpack / esbuild / Rspack / Farm 等；
+- 🧩 **四套框架支持**：Vue 2 / Vue 3 / React / Web Components 按框架绑定插件工厂，互不干扰；
+- 🔌 **多构建工具**：基于 [unplugin](https://github.com/unjs/unplugin)，一套代码支持 Vite / Rollup / Rolldown / Webpack / esbuild / Rspack；
 - 🗺️ **零配置映射**：直接从图标包内置的 `esm/manifest.js` 读取 `图标名 ↔ 文件名` 映射，无需手动维护；
 - 🛡️ **安全解析**：基于 `es-module-lexer` 精确解析 import 语句，字符串/注释中的伪导入不会被误伤；
 - 🎯 **SFC 模板改写**：`<script setup>`（Vue 2.7+/Vue 3）与 Vue 2 经典 `<script>` 中的静态 `<Icon name="..." />` 自动改写为单图标组件 `<SneerIcon />`；
 - ✂️ **智能混用**：同一行里图标 + 非图标（如 `IconBase`）导入会拆成多条，非图标保留桶导入。
 
-## 安装
-
-> 本仓库使用 [pnpm](https://pnpm.io) 作为包管理器（根目录 `package.json` 声明了 `packageManager`），本地开发请先启用对应版本：
->
-> ```bash
-> corepack enable
-> pnpm install
-> ```
->
-> 仓库根目录是 pnpm workspace（`pnpm-workspace.yaml`），`examples/*` 通过 `workspace:*` 引用本包。
-> 配合 tsdown 的 `exports.devExports`，**开发期无需先 `pnpm run build`**：`package.json` 的 `exports` 直接指向 `src/*.ts` 源码，
-> 各示例的构建配置（Vite/Rollup/Webpack 等）在 Node 侧加载插件时即可直接用源码（Node 22+ 的 type-stripping 会剥离类型），
-> 改完 `src` 保存即生效；发布时 tsdown 自动把 `exports` 写入 `publishConfig`（指向 `dist` 产物），互不影响。
+## Install
 
 ```bash
 pnpm add -D unplugin-tdesign-icons
-# 按需安装对应图标包
-pnpm add tdesign-icons-vue-next   # Vue 3
-pnpm add tdesign-icons-vue        # Vue 2
-pnpm add tdesign-icons-react      # React
-pnpm add tdesign-icons-web-components  # Web Components
+pnpm add tdesign-icons-vue-next # 按需替换为对应框架的图标包
 ```
 
-## 快速上手（Quick Start）
-
-在构建工具配置里启用插件后，源码里 `import { XxxIcon } from 'tdesign-icons-xxx'` 的写法**完全不变**，构建时会被自动改写为单图标深层导入，只打包用到的图标：
-
-```vue
-<script setup>
-import { CloseIcon } from 'tdesign-icons-vue-next'
-</script>
-
-<template>
-  <CloseIcon />
-</template>
-```
-
-```ts
-// vite.config.ts
-import vue from '@vitejs/plugin-vue'
-import { defineConfig } from 'vite'
-import { TDesignIconsVueNext } from 'unplugin-tdesign-icons/vite'
-
-export default defineConfig({
-  plugins: [
-    vue(),
-    TDesignIconsVueNext(),
-  ],
-})
-```
-
-## 使用
-
-按构建工具从对应子路径导入**框架对应的插件工厂**，然后直接调用即可（无需 `.vite()` 等后缀）：
+<details>
+<summary>Vite</summary><br>
 
 ```ts
 // vite.config.ts
@@ -97,7 +52,12 @@ export default defineConfig({
 })
 ```
 
-```js
+<br></details>
+
+<details>
+<summary>Rollup</summary><br>
+
+```ts
 // rollup.config.js
 import { TDesignIconsReact } from 'unplugin-tdesign-icons/rollup'
 
@@ -108,9 +68,88 @@ export default {
 }
 ```
 
-每个构建工具子路径都导出四个框架工厂：`TDesignIconsVue` / `TDesignIconsVueNext` / `TDesignIconsReact` / `TDesignIconsWebComponents`，已固定对应框架，无需（也不能）再传 `framework`。
+<br></details>
 
-> 只需在构建工具配置里启用一次插件，源码里的 `import { XxxIcon } from 'tdesign-icons-xxx'` 会在编译期被自动改写为单图标深层导入。
+<details>
+<summary>Rolldown</summary><br>
+
+```ts
+// rolldown.config.js
+import { TDesignIconsReact } from 'unplugin-tdesign-icons/rolldown'
+
+export default {
+  plugins: [
+    TDesignIconsReact({ /* options */ }),
+  ],
+}
+```
+
+<br></details>
+
+<details>
+<summary>Webpack</summary><br>
+
+```js
+// webpack.config.js
+const { TDesignIconsVueNext } = require('unplugin-tdesign-icons/webpack')
+
+module.exports = {
+  plugins: [
+    TDesignIconsVueNext({ /* options */ }),
+  ],
+}
+```
+
+<br></details>
+
+<details>
+<summary>Rspack</summary><br>
+
+```js
+// rspack.config.js
+const { TDesignIconsReact } = require('unplugin-tdesign-icons/rspack')
+
+module.exports = {
+  plugins: [
+    TDesignIconsReact({ /* options */ }),
+  ],
+}
+```
+
+<br></details>
+
+<details>
+<summary>esbuild</summary><br>
+
+```ts
+// esbuild.config.js
+import { build } from 'esbuild'
+import { TDesignIconsReact } from 'unplugin-tdesign-icons/esbuild'
+
+build({
+  plugins: [
+    TDesignIconsReact({ /* options */ }),
+  ],
+})
+```
+
+<br></details>
+
+每个构建工具子路径都导出 `TDesignIconsVue`、`TDesignIconsVueNext`、`TDesignIconsReact` 和 `TDesignIconsWebComponents`。框架参数由工厂绑定，不需要传入 `framework`。
+
+## Usage
+
+插件启用后，业务代码继续从对应的 TDesign 图标包导入，插件会在编译期自动改写为单图标深层导入：
+
+```vue
+<script setup>
+import { CloseIcon } from 'tdesign-icons-vue-next'
+</script>
+
+<template>
+  <CloseIcon />
+</template>
+```
 
 ### Vue SFC 模板改写（`<Icon name="..." />`）
 
@@ -174,124 +213,6 @@ export default {
 - 模板里同时有**可改写与不可改写**的 `<Icon>` 时，`Icon` 桶导入保留给不可改写的那部分；
 - **经典 `<script>` 需 `components: { Icon }` 注册**：没有注册时 `<Icon>` 被视为全局/自定义组件，模板不做改写（普通 import 改写仍生效）；
 - 需要 `@vue/compiler-sfc`：优先使用项目自身已安装的版本（与 `vue` 依赖对齐），未安装时该功能自动降级，仅保留普通的 import 改写。
-
-### 构建工具子路径
-
-| 构建工具 | 导入 | 示例 |
-| --- | --- | --- |
-| Vite | `unplugin-tdesign-icons/vite` | `TDesignIconsVueNext()` |
-| Rollup | `unplugin-tdesign-icons/rollup` | `TDesignIconsReact()` |
-| Rolldown | `unplugin-tdesign-icons/rolldown` | `TDesignIconsReact()` |
-| Webpack | `unplugin-tdesign-icons/webpack` | `TDesignIconsVueNext()` |
-| Rspack | `unplugin-tdesign-icons/rspack` | `TDesignIconsReact()` |
-| esbuild | `unplugin-tdesign-icons/esbuild` | `TDesignIconsReact()` |
-
-> 每个子路径**不再提供默认导出**：所有入口都已固定对应框架，`framework` 不是对外选项。
-
-### Vue 3 + Vite
-
-```ts
-// vite.config.ts
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import { TDesignIconsVueNext } from 'unplugin-tdesign-icons/vite'
-
-export default defineConfig({
-  plugins: [
-    vue(),
-    TDesignIconsVueNext(),
-  ],
-})
-```
-
-### Vue 2 + Vite
-
-```ts
-// vite.config.ts
-import { defineConfig } from 'vite'
-import vue2 from '@vitejs/plugin-vue2'
-import { TDesignIconsVue } from 'unplugin-tdesign-icons/vite'
-
-export default defineConfig({
-  plugins: [
-    vue2(),
-    TDesignIconsVue(),
-  ],
-})
-```
-
-### React + Vite
-
-```ts
-// vite.config.ts
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { TDesignIconsReact } from 'unplugin-tdesign-icons/vite'
-
-export default defineConfig({
-  plugins: [
-    react(),
-    TDesignIconsReact(),
-  ],
-})
-```
-
-### Web Components + Vite
-
-```ts
-// vite.config.ts
-import { defineConfig } from 'vite'
-import { TDesignIconsWebComponents } from 'unplugin-tdesign-icons/vite'
-
-export default defineConfig({
-  plugins: [
-    TDesignIconsWebComponents(),
-  ],
-})
-```
-
-### CNB 云原生开发环境（端口预览）
-
-在 CNB 云原生开发环境中启动 Vite dev server 并通过 WebIDE 的 PORTS 面板 / 预览访问时，
-需要让服务监听 `0.0.0.0` 并放行代理域名（如 `*.cnb.run`）的 Host 校验，否则页面无法打开：
-
-```ts
-// vite.config.ts
-export default defineConfig({
-  server: {
-    host: true,          // 监听 0.0.0.0，供端口预览访问
-    allowedHosts: true,  // 放行代理域名（*.cnb.run）的 Host 校验
-  },
-  // ...
-})
-```
-
-> 仓库内 `examples/vite-*` 四个示例的 `vite.config.ts` 均已带上该配置，可直接在 CNB 云原生环境中 `pnpm run dev` 后预览。
-
-### 其他构建工具
-
-```ts
-// rollup.config.js
-import { TDesignIconsReact } from 'unplugin-tdesign-icons/rollup'
-export default { plugins: [TDesignIconsReact()] }
-
-// rolldown.config.js
-import { TDesignIconsReact } from 'unplugin-tdesign-icons/rolldown'
-export default { plugins: [TDesignIconsReact()] }
-
-// webpack.config.js（CJS 通过 require(esm) 互操作拿到插件工厂）
-const { TDesignIconsVueNext } = require('unplugin-tdesign-icons/webpack')
-module.exports = { plugins: [TDesignIconsVueNext()] }
-
-// rspack.config.js
-const { TDesignIconsReact } = require('unplugin-tdesign-icons/rspack')
-module.exports = { plugins: [TDesignIconsReact()] }
-
-// esbuild.config.js
-import { build } from 'esbuild'
-import { TDesignIconsReact } from 'unplugin-tdesign-icons/esbuild'
-build({ plugins: [TDesignIconsReact()] })
-```
 
 ## 示例（Examples）
 
