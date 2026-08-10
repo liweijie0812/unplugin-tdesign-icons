@@ -1,6 +1,6 @@
 {
   "name": "unplugin-tdesign-icons",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "An unplugin for on-demand importing TDesign icons (vue / vue-next / react / web-components). Auto rewrites `import { XxxIcon } from 'tdesign-icons-xxx'` to the exact icon module, avoiding bundling all 2000+ icons.",
   "license": "MIT",
   "homepage": "https://github.com/liweijie0812/unplugin-tdesign-icons#readme",
