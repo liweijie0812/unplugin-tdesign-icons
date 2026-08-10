@@ -19,8 +19,8 @@
 仓库根目录是 pnpm workspace，`examples/*` 通过 `workspace:*` 引用根包。
 
 ```bash
-# 根目录统一安装（一次装好所有 workspace 包）
-cd ../.. && pnpm install && cd -
+# 根目录统一安装并构建插件
+cd ../.. && pnpm install && pnpm run build && cd -
 
 # 进入任一示例
 cd vite-vue3
@@ -29,10 +29,7 @@ pnpm run build   # 生产构建
 ```
 
 > 示例的 `package.json` 通过 `"unplugin-tdesign-icons": "workspace:*"` 引用仓库根目录。
-> 配合 tsdown 的 `exports.devExports`，**开发期无需先在根目录 `pnpm run build`**：
-> `exports` 直接指向 `src/*.ts` 源码，各示例的构建配置（Vite/Rollup/Webpack 等）在 Node 侧
-> 通过 pnpm workspace symlink 加载插件（Node 22+ type-stripping 剥离类型），改完 `src` 保存即生效。
-> 发布时 `publishConfig.exports` 指向 `dist` 产物，两者互不影响。
+> 包导出统一指向 `dist`，修改插件源码后需在根目录重新执行 `pnpm run build`。
 > 包管理器统一使用 pnpm（corepack 管理版本）。
 
 > 💡 **CNB 云原生开发环境**：`vite-*` 示例的 `vite.config.ts` 已内置

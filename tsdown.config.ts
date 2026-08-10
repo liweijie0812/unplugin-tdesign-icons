@@ -27,29 +27,25 @@ export default defineConfig({
     },
   },
   exports: {
-    // devExports：开发期 exports 直接指向 src 源码，无需 build 即可本地联调
-    devExports: true,
-    customExports(exports, { isPublish }) {
+    customExports(exports) {
       const result: Record<string, any> = { ...exports }
-      if (isPublish) {
-        // 发布产物：为每个子路径补上 types 条件（import→d.mts / require→d.cts）
-        for (const [name, value] of Object.entries(result)) {
-          if (name === './package.json' || typeof value !== 'object' || value === null) continue
-          const file = name === '.' ? 'index' : name.replace(/^\.\//, '')
-          const entry: any = {}
-          for (const cond of ['import', 'require']) {
-            const target = (value as any)[cond]
-            if (typeof target === 'string') {
-              entry[cond] = {
-                types: `./dist/${file}.d.${cond === 'require' ? 'cts' : 'mts'}`,
-                default: target,
-              }
-            } else if (target && typeof target === 'object') {
-              entry[cond] = { ...target }
+      // 为每个子路径补上 types 条件（import -> d.mts / require -> d.cts）。
+      for (const [name, value] of Object.entries(result)) {
+        if (name === './package.json' || typeof value !== 'object' || value === null) continue
+        const file = name === '.' ? 'index' : name.replace(/^\.\//, '')
+        const entry: any = {}
+        for (const cond of ['import', 'require']) {
+          const target = (value as any)[cond]
+          if (typeof target === 'string') {
+            entry[cond] = {
+              types: `./dist/${file}.d.${cond === 'require' ? 'cts' : 'mts'}`,
+              default: target,
             }
+          } else if (target && typeof target === 'object') {
+            entry[cond] = { ...target }
           }
-          result[name] = entry
         }
+        result[name] = entry
       }
       return result
     },
