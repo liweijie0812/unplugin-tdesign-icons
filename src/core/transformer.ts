@@ -21,6 +21,30 @@ export function createTransformer(config: FrameworkConfig) {
   }
 
   async function transform(code: string, id?: string): Promise<TransformResult> {
+    // --- 快速短路（dev/编译性能关键路径）----------------------------------
+    // 绝大多数业务文件并不导入图标包。在启动 es-module-lexer / SFC 解析器
+    //（体积大、耗 CPU）之前，先用一次廉价的字符串包含检查把无关文件挡在门外。
+    const mentionsPkg = code.includes(config.packageName)
+    if (!mentionsPkg && !config.localIcons) {
+      // 未开启 `localIcons` 时，转换器只处理图标包导入：文件不含包名即无任何可改之处。
+      return null
+    }
+    // `localIcons` 开启时，无包导入的文件仍可能因 `<Icon>` / 别名标签
+    //（例如 `<t-icon>`）需要被扫描改写，需进一步做标签预检。
+    if (!mentionsPkg && config.localIcons) {
+      const tagRe = /<(Icon|icon|[A-Za-z][\w-]*)\b/g
+      let canRewrite = false
+      const aliasTags = new Set(['Icon', 'icon', ...Object.keys(config.aliases ?? {})])
+      let m: RegExpExecArray | null
+      while ((m = tagRe.exec(code))) {
+        if (aliasTags.has(m[1])) {
+          canRewrite = true
+          break
+        }
+      }
+      if (!canRewrite) return null
+    }
+
     const { exportMap } = cachedLoadManifest()
     // 用 MagicString 记录对代码的增删改，最后统一生成新的代码与 sourcemap
     const s = new MagicString(code)
