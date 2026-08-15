@@ -7,6 +7,7 @@ import {
   ChevronDownIcon,
   CloseIcon,
   HeartFilledIcon,
+  Icon,
   SearchIcon,
   TimeIcon,
   UserIcon,
@@ -15,12 +16,13 @@ import './App.css'
 
 function App() {
   const [count, setCount] = useState(0)
+  const dynamicIcon = count % 2 === 0 ? 'sneer' : 'unhappy'
 
   return (
     <main className="app">
       <h1>unplugin-tdesign-icons · React + Vite</h1>
       <p className="hint">
-        源码里写的是桶导入，构建时被插件改写为单图标深层导入（只打包用到的图标）。
+        具名组件按需深层导入，通用 Icon 的静态和动态 name 使用本地 svg-sprite。
       </p>
 
       <div className="icons">
@@ -31,6 +33,8 @@ function App() {
         <div className="icon-card"><SearchIcon /><span>SearchIcon</span></div>
         <div className="icon-card"><TimeIcon /><span>TimeIcon</span></div>
         <div className="icon-card"><UserIcon /><span>UserIcon</span></div>
+        <div className="icon-card"><Icon name="sneer" /><span>static Icon</span></div>
+        <div className="icon-card"><Icon name={dynamicIcon} /><span>dynamic Icon</span></div>
       </div>
 
       <button className="btn" type="button" onClick={() => setCount(c => c + 1)}>

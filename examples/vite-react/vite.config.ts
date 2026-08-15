@@ -12,8 +12,7 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    // Rewrite `import { CloseIcon } from 'tdesign-icons-react'` into the
-    // deep import of the single icon module at build time.
-    TDesignIconsReact(),
+    // 具名图标继续深层导入，通用 Icon 则使用构建产物中的本地 sprite。
+    TDesignIconsReact({ localIcons: true }),
   ],
 })

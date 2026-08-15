@@ -14,6 +14,7 @@
     "unplugin-tdesign-icons": "workspace:*"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^29.0.3",
     "@rollup/plugin-node-resolve": "^16.0.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",

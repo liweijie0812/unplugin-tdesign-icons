@@ -24,20 +24,9 @@ export interface ComponentRegistrations {
   regs: { tag: string; local: string; start: number; end: number; removed?: boolean }[]
 }
 
-/** 由 `localIcons` 收集到的一处 `<Icon name="...">` / `<t-icon name="...">` 用法。 */
-export interface IconUsage {
-  component: string
-  stem: string
-  attrs: string
-  selfClosing: boolean
+/** 由 `localIcons` 收集到的一处需要注入本地 sprite 属性的图标标签。 */
+export interface IconTagUsage {
   openTagStart: number
   openTagEnd: number
-  closeTagStart: number
-  closeTagEnd: number
-}
-
-export interface IconUsageCollection {
-  usages: IconUsage[]
-  /** 仍存在（不可转换的）`<Icon ...>` 引用的本地名称。 */
-  stillUsed: Set<string>
+  replacement: string
 }

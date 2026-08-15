@@ -12,8 +12,7 @@ export default defineConfig({
   },
   plugins: [
     vue2(),
-    // Rewrite `import { CloseIcon } from 'tdesign-icons-vue'` into the
-    // deep import of the single icon module at build time.
-    TDesignIconsVue(),
+    // 具名图标继续深层导入，通用 Icon 则使用构建产物中的本地 sprite。
+    TDesignIconsVue({ localIcons: true }),
   ],
 })

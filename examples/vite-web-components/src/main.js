@@ -4,6 +4,8 @@
 //
 // Importing a component module also registers the corresponding
 // custom element, e.g. `<t-icon-close>`, which is what the template uses.
+// The side-effect entry registers the generic `<t-icon>` backed by local JSON.
+import 'tdesign-icons-web-components'
 import {
   AddIcon,
   ChevronDownIcon,
@@ -14,10 +16,12 @@ import {
   UserIcon,
 } from 'tdesign-icons-web-components'
 
+const dynamicIcon = 'unhappy'
+
 document.querySelector('#app').innerHTML = `
   <main class="app">
     <h1>unplugin-tdesign-icons · Web Components</h1>
-    <p class="hint">源码写桶导入，构建时被插件改写为单图标深层导入（只打包用到的图标）。</p>
+    <p class="hint">具名组件按需深层导入，通用 t-icon 使用包内置的本地图标 JSON。</p>
     <div class="icons">
       <div class="icon-card"><t-icon-add></t-icon-add><span>AddIcon</span></div>
       <div class="icon-card"><t-icon-chevron-down></t-icon-chevron-down><span>ChevronDownIcon</span></div>
@@ -26,6 +30,8 @@ document.querySelector('#app').innerHTML = `
       <div class="icon-card"><t-icon-search></t-icon-search><span>SearchIcon</span></div>
       <div class="icon-card"><t-icon-time></t-icon-time><span>TimeIcon</span></div>
       <div class="icon-card"><t-icon-user></t-icon-user><span>UserIcon</span></div>
+      <div class="icon-card"><t-icon name="sneer"></t-icon><span>static t-icon</span></div>
+      <div class="icon-card"><t-icon name="${dynamicIcon}"></t-icon><span>dynamic t-icon</span></div>
     </div>
   </main>
   <style>

@@ -39,7 +39,7 @@ export function loadManifest(packageName: string): ManifestData {
 }
 
 /**
- * `<Icon name="...">` → 深层单图标组件名查找表，供 `localIcons` 字符串扫描器使用。
+ * `<Icon name="...">` → 深层单图标组件名查找表，供 Vue SFC 静态转换使用。
  * 同时接受小写 stem（`sneer`）、PascalCase 图标名（`Chart3D`）以及
  * kebab-case stem（`chart-3d`），并把它们全部解析为桶导出名
  *（`SneerIcon` / `Chart3DIcon`）。

@@ -31,7 +31,7 @@ export default {
     ],
   },
   plugins: [
-    // 把 `import { XxxIcon } from 'tdesign-icons-react'` 改写为单图标深层导入
-    TDesignIconsReact(),
+    // 根目录 index.html 加载 dist/main.js，因此 sprite URL 也指向 ./dist。
+    TDesignIconsReact({ localIcons: { publicPath: './dist/' } }),
   ],
 }

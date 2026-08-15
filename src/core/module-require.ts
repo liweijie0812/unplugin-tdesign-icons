@@ -7,10 +7,17 @@ import { createRequire } from 'node:module'
  * 我们刻意避免使用裸的 `require` 标识符，防止打包器（esbuild/tsup）
  * 注入自己的运行时 `require` shim 而导致 ESM 环境下出错。
  */
-export const nodeRequire =
+const fallbackRequire = createRequire(import.meta.url)
+
+export const nodeRequire = (
   typeof module !== 'undefined' && typeof (module as any).require === 'function'
     ? (module as any).require.bind(module)
-    : createRequire(import.meta.url)
+    : fallbackRequire
+) as NodeJS.Require
+
+// Function#bind does not copy require.resolve/cache. Keep resolution anchored to
+// this package for both ESM and the generated CJS bundle.
+nodeRequire.resolve = fallbackRequire.resolve
 
 /**
  * 加载指定图标包的 manifest。依次尝试几种常见的 manifest 入口路径，

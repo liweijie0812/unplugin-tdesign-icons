@@ -1,18 +1,22 @@
 <script setup>
-// 构建时被 unplugin-tdesign-icons 改写为单图标深层导入，例如：
-//   import CloseIcon from 'tdesign-icons-vue-next/esm/components/close.js'
-import { CloseIcon, SearchIcon, TimeIcon, UserIcon } from 'tdesign-icons-vue-next'
+import { shallowRef } from 'vue'
+import { CloseIcon, Icon, SearchIcon, TimeIcon, UserIcon } from 'tdesign-icons-vue-next'
+
+const dynamicIcon = shallowRef('unhappy')
 </script>
 
 <template>
   <main class="app">
     <h1>unplugin-tdesign-icons · Vue 3 + Webpack</h1>
-    <p class="hint">源码写桶导入，构建时被插件改写为单图标深层导入。</p>
+    <p class="hint">具名组件按需深层导入，Icon 与 t-icon 使用本地 svg-sprite。</p>
     <div class="icons">
       <div class="icon-card"><CloseIcon /><span>CloseIcon</span></div>
       <div class="icon-card"><SearchIcon /><span>SearchIcon</span></div>
       <div class="icon-card"><TimeIcon /><span>TimeIcon</span></div>
       <div class="icon-card"><UserIcon /><span>UserIcon</span></div>
+      <div class="icon-card"><Icon name="sneer" /><span>static Icon</span></div>
+      <div class="icon-card"><Icon :name="dynamicIcon" /><span>dynamic Icon</span></div>
+      <div class="icon-card"><t-icon name="unhappy" /><span>tdesign t-icon</span></div>
     </div>
   </main>
 </template>

@@ -1,21 +1,19 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 // `<Icon name="..." />` 是 TDesign 的通用图标组件（svg-sprite 渲染）。
-// 本插件在编译期把模板里的静态 `<Icon name="sneer" />` 改写为单图标组件
-// `<SneerIcon />`，并自动把 `Icon` 桶导入替换为深层单图标导入，例如：
-//   import SneerIcon from 'tdesign-icons-vue-next/esm/components/sneer.js'
-// 从而只打包实际用到的图标。
-// 开启 `localIcons` 后，下面的 `<t-icon name="xxx" />` 同样会被改写。
+// 开启 localIcons 后，Icon 与 t-icon 会指向构建产物中的本地 svg-sprite；
+// name 保持不变，因此静态和动态名称都能工作。
 import { Icon } from 'tdesign-icons-vue-next'
 
 const count = ref(0)
+const dynamicIcon = ref('sneer')
 </script>
 
 <template>
   <main class="app">
     <h1>unplugin-tdesign-icons · Vue 3 + Vite</h1>
     <p class="hint">
-      模板里写的是 <code>&lt;Icon name="xxx" /&gt;</code>，构建时被插件改写为单图标组件（只打包用到的图标）。
+      模板里的 <code>&lt;Icon name="xxx" /&gt;</code> 会加载构建产物中的本地 svg-sprite。
     </p>
 
     <div class="icons">
@@ -26,9 +24,9 @@ const count = ref(0)
       <div class="icon-card"><Icon name="search" /><span>search</span></div>
       <div class="icon-card"><Icon name="time" /><span>time</span></div>
       <div class="icon-card"><Icon name="user" /><span>user</span></div>
-      <!-- localIcons 演示：构建时改写为 <SneerIcon />，离线渲染 -->
-      <div class="icon-card"><Icon name="sneer" /><span>Icon name="sneer"</span></div>
-      <!-- TDesign Vue 组件库的 <t-icon> 封装同样会被改写 -->
+      <!-- localIcons 同时支持动态 name -->
+      <div class="icon-card"><Icon :name="dynamicIcon" /><span>dynamic Icon</span></div>
+      <!-- tdesign-vue-next 全局注册的 t-icon 使用相同本地 sprite -->
       <div class="icon-card"><t-icon name="unhappy" /><span>t-icon name="unhappy"</span></div>
     </div>
 

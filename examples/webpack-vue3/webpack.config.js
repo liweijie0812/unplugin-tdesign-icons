@@ -29,7 +29,7 @@ module.exports = {
   },
   plugins: [
     new VueLoaderPlugin(),
-    // 把 `import { XxxIcon } from 'tdesign-icons-vue-next'` 改写为单图标深层导入
-    TDesignIconsVueNext(),
+    // 具名图标继续深层导入，Icon/t-icon 使用构建产物中的本地 sprite。
+    TDesignIconsVueNext({ localIcons: true }),
   ],
 }

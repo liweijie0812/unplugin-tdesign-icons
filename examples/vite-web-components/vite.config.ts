@@ -10,8 +10,7 @@ export default defineConfig({
     allowedHosts: true,
   },
   plugins: [
-    // Rewrite `import { XxxIcon } from 'tdesign-icons-web-components'` into the
-    // deep import of the single icon module at build time.
+    // Web Components 的通用 Icon 已内置本地图标 JSON，无需 localIcons sprite。
     TDesignIconsWebComponents(),
   ],
 })

@@ -38,12 +38,17 @@ pnpm run build   # 生产构建
 
 ## 每个示例展示什么
 
-- **`vite-vue3`**：源码用桶导入 `import { CloseIcon, ... } from 'tdesign-icons-vue-next'`，构建时由 `unplugin-tdesign-icons/vite` 的 `TDesignIconsVueNext()` 改写为单图标深层导入。
-- **`vite-vue2`**：同上，面向 `tdesign-icons-vue`，由 `unplugin-tdesign-icons/vite` 的 `TDesignIconsVue()` 处理。
-- **`vite-react`**：同上，面向 `tdesign-icons-react`，由 `unplugin-tdesign-icons/vite` 的 `TDesignIconsReact()` 处理。
-- **`vite-web-components`**：面向 `tdesign-icons-web-components`，由 `unplugin-tdesign-icons/vite` 的 `TDesignIconsWebComponents()` 处理。
-- **`webpack-vue3`**：Webpack 5 + Vue 3，通过 CJS `require('unplugin-tdesign-icons/webpack')` 拿到 `TDesignIconsVueNext` 后直接 `TDesignIconsVueNext()` 使用。
-- **`rollup-react`**：Rollup + React，`.tsx` 经 `rollup-plugin-esbuild` 编译，桶导入由 `TDesignIconsReact()` 改写。
-- **`rolldown-react`**：Rolldown + React，Rolldown 原生支持 TSX，桶导入由 `TDesignIconsReact()` 改写。
-- **`rspack-react`**：Rspack + React，`.tsx` 经内置 `builtin:swc-loader` 编译，桶导入由 `TDesignIconsReact()` 改写。
-- **`esbuild-react`**：esbuild + React，`.tsx` 原生支持，桶导入由 `TDesignIconsReact()` 改写。
+除 Web Components 外，所有示例都开启 `localIcons`，同时展示两条互补链路：
+
+- `CloseIcon` 等具名组件继续改写为 `esm/components/*.js` 深层导入。
+- `<Icon name="...">` 的静态和动态名称保留，运行时加载构建产物中的 `assets/tdesign-icons.js`。
+
+- **`vite-vue3`**：Vue 3 + Vite，并通过 `tdesign-vue-next` 真实注册全局 `<t-icon>`。
+- **`vite-vue2`**：Vue 2.7 + Vite，使用 `tdesign-icons-vue` 的静态与动态 `Icon`。
+- **`vite-react`**：React + Vite，点击计数按钮时动态切换通用图标名称。
+- **`webpack-vue3`**：Webpack 5 + Vue 3，并通过 `tdesign-vue-next` 真实注册全局 `<t-icon>`。
+- **`rollup-react`**：插件在 `rollup-plugin-esbuild` 之前处理 TSX，sprite URL 指向 `./dist/assets`。
+- **`rolldown-react`**：Rolldown 原生处理 TSX，sprite URL 指向 `./dist/assets`。
+- **`rspack-react`**：Rspack 使用内置 SWC，sprite URL 指向 `./dist/assets`。
+- **`esbuild-react`**：esbuild 原生处理 TSX，sprite URL 指向 `./dist/assets`。
+- **`vite-web-components`**：Web Components 的通用 `<t-icon>` 使用包内置 JSON，不需要额外 sprite 资产。

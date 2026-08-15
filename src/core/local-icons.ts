@@ -1,10 +1,4 @@
-import type { IconUsage, IconUsageCollection } from './types.ts'
-
-/**
- * 匹配标签属性字符串中的 `name="..."` / `name='...'` 属性值，
- * 返回带引号的原始值（例如 `sneer`）。
- */
-const NAME_ATTR_RE = /(?:^|\s)name\s*=\s*['"]([^'"]+)['"]/
+import type { IconTagUsage } from './types.ts'
 
 /** 首字母小写：`Icon` → `icon`，`TIcon` → `tIcon`。 */
 export function lowerFirst(s: string) {
@@ -133,143 +127,138 @@ export function maskStringsAndComments(code: string): string {
   return chars.join('')
 }
 
-/**
- * 决定新的 `import` 行插入到哪里：
- * - `.vue` SFC 的 `<script>` 块内（在其开标签之后）；
- * - 否则在最后一条已有 import 语句之后；
- * - 都没有则放在文件最开头。
- */
-export function findInjectPosition(code: string, stmts: { start: number; end: number }[]): number {
-  const scriptMatch = /<script[^>]*>/g.exec(code)
-  if (scriptMatch) {
-    return scriptMatch.index + scriptMatch[0].length
-  }
-  if (stmts.length) {
-    let end = -1
-    for (const stmt of stmts) {
-      if (stmt.end > end) end = stmt.end
-    }
-    return end
-  }
-  return 0
+function kebabCase(name: string) {
+  return name
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
+    .toLowerCase()
 }
 
-/**
- * 扫描代码，收集所有可转换为深层单图标组件的 `<Icon ...>` / `<t-icon ...>` 用法。
- *
- * @param code 原始代码
- * @param localNames 桶 `Icon` 组件在本文件中的本地名（含别名）
- * @param aliases 额外封装标签映射（如 `{ 't-icon': 'Icon' }`）
- * @param byName 图标名 → 深层组件名的查找表
- * @returns 收集到的用法列表，以及仍保留引用的本地名集合
- */
-export function collectIconUsages(
+function isManagedAttribute(name: string) {
+  const normalized = name.replace(/^:|^v-bind:/, '').replace(/-/g, '').toLowerCase()
+  return normalized === 'url' || normalized === 'loaddefaulticons'
+}
+
+/** 移除已有的 url/loadDefaultIcons，确保 localIcons 的本地地址最终生效。 */
+function stripManagedAttributes(attrs: string) {
+  const ranges: [number, number][] = []
+  let i = 0
+  while (i < attrs.length) {
+    const rangeStart = i
+    while (/\s/.test(attrs[i] ?? '')) i++
+    if (i >= attrs.length || attrs[i] === '/') break
+
+    const nameStart = i
+    while (i < attrs.length && !/[\s=/>]/.test(attrs[i]!)) i++
+    const name = attrs.slice(nameStart, i)
+    while (/\s/.test(attrs[i] ?? '')) i++
+    if (attrs[i] === '=') {
+      i++
+      while (/\s/.test(attrs[i] ?? '')) i++
+      const quote = attrs[i]
+      if (quote === '"' || quote === "'") {
+        i++
+        while (i < attrs.length) {
+          if (attrs[i] === '\\') i += 2
+          else if (attrs[i++] === quote) break
+        }
+      } else if (quote === '{') {
+        let depth = 0
+        let stringQuote = ''
+        while (i < attrs.length) {
+          const char = attrs[i++]!
+          if (stringQuote) {
+            if (char === '\\') i++
+            else if (char === stringQuote) stringQuote = ''
+          } else if (char === '"' || char === "'" || char === '`') {
+            stringQuote = char
+          } else if (char === '{') depth++
+          else if (char === '}' && --depth === 0) break
+        }
+      } else {
+        while (i < attrs.length && !/[\s/>]/.test(attrs[i]!)) i++
+      }
+    }
+    if (isManagedAttribute(name)) ranges.push([rangeStart, i])
+  }
+
+  if (!ranges.length) return attrs
+  let result = ''
+  let last = 0
+  for (const [start, end] of ranges) {
+    result += attrs.slice(last, start)
+    last = end
+  }
+  return result + attrs.slice(last)
+}
+
+function escapeAttribute(value: string) {
+  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+}
+
+function findOpeningTagEnd(code: string, start: number) {
+  let quote = ''
+  let braceDepth = 0
+  for (let i = start; i < code.length; i++) {
+    const char = code[i]!
+    if (quote) {
+      if (char === '\\') i++
+      else if (char === quote) quote = ''
+      continue
+    }
+    if (char === '"' || char === "'" || char === '`') {
+      quote = char
+    } else if (char === '{') {
+      braceDepth++
+    } else if (char === '}') {
+      if (braceDepth > 0) braceDepth--
+    } else if (char === '>' && braceDepth === 0) {
+      return i + 1
+    }
+  }
+  return -1
+}
+
+/** 收集静态和动态 name 的图标标签，并让它们统一加载构建产物中的 sprite。 */
+export function collectLocalIconTags(
   code: string,
   localNames: string[],
   aliases: Record<string, string>,
-  byName: Map<string, string>,
-): IconUsageCollection {
-  const usages: IconUsage[] = []
-  // 本地名初始为「仍在使用」，只有当它的一处具体 `<Xxx name="...">` 用法
-  // 被改写成深层组件后才被清除。
-  const stillUsed = new Set<string>(localNames)
-
-  // 在 Vue 模板中，导入的 PascalCase 组件可写作 `<Icon>`、`<icon>` 或 `<t-icon>`，
-  // 为每个本地名接受这些变体，确保标签无论如何大小写都能被改写。
-  const accepted = new Set<string>()
-  const canonicalOf = new Map<string, string>()
+  spriteUrl: string,
+  isVueSfc: boolean,
+): IconTagUsage[] {
+  const accepted = new Set<string>(Object.keys(aliases ?? {}))
   for (const name of localNames) {
     accepted.add(name)
     accepted.add(lowerFirst(name))
-    // PascalCase → kebab-case（`Icon` → `icon`，`MyIcon` → `my-icon`）
-    accepted.add(
-      name
-        .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
-        .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
-        .toLowerCase(),
-    )
-    for (const variant of accepted) canonicalOf.set(variant, name)
+    accepted.add(kebabCase(name))
   }
+  if (!accepted.size) return []
 
-  // 包装桶 `Icon` 组件的额外便捷标签 —— 例如组件库把 TDesign `Icon`
-  // 用短别名再导出后形成的 `<t-icon name="sneer" />`。标签映射到桶本地名
-  //（通常为 `Icon`）。
-  //
-  // 如果本地绑定已经以 kebab-case 变体的形式产生了该标签
-  //（例如 `import { Icon as TIcon }` → `<t-icon>`），则不会被覆盖，
-  // 这样「仍在使用」的跟踪仍然挂在真实的本地绑定上。
-  for (const [tag, barrelLocal] of Object.entries(aliases ?? {})) {
-    if (!canonicalOf.has(tag)) {
-      accepted.add(tag)
-      canonicalOf.set(tag, barrelLocal)
-    }
-  }
-
-  // 匹配任意 `<Icon ...>` / `<icon ...>` / `<Icon ... />` 开标签。
-  // 分组 1 = 标签名，分组 2 = 属性字符串（不含末尾的 `>`）。
-  // 我们在字符串/模板/注释已被置空的「掩码」副本上扫描，因此字符串或注释里
-  // 的 `<Icon name="..." />` 绝不会被误认为真实组件用法。
-  const tagRe = /<([A-Za-z][\w-]*)\b([^>]*)>/g
+  const usages: IconTagUsage[] = []
+  const tagRe = /<([A-Za-z][\w-]*)\b/g
   const masked = maskStringsAndComments(code)
-  let m: RegExpExecArray | null
-  while ((m = tagRe.exec(masked))) {
-    const tagName = m[1]
+  let match: RegExpExecArray | null
+  while ((match = tagRe.exec(masked))) {
+    const tagName = match[1]!
     if (!accepted.has(tagName)) continue
-    const canonical = canonicalOf.get(tagName)!
-
-    // 从原始代码重新提取真实属性文本（掩码副本置空了字符串内容，但下标不变）
-    const attrStart = m.index + (m[0].length - m[2].length)
-    const attrsRaw = code.slice(attrStart, m.index + m[0].length - 1)
-    const nameMatch = NAME_ATTR_RE.exec(attrsRaw)
-    if (!nameMatch) {
-      // 没有静态 `name="..."` —— 例如 `<Icon />` 或 `:name`/`name={expr}`。
-      stillUsed.add(canonical)
-      continue
-    }
-    const iconName = nameMatch[1]
-    const component = byName.get(iconName)
-    if (!component) {
-      // 图标名不在 manifest 中，无法转换
-      stillUsed.add(canonical)
-      continue
-    }
-    // 该用法可转换 —— 本地名可能因此不再被使用
-    stillUsed.delete(canonical)
-    const selfClosing = /\/>\s*$/.test(m[0]) || /\/\s*>$/.test(m[0])
-    const openTagStart = m.index
-    const openTagEnd = m.index + m[0].length
-
-    // 从标签中移除 `name="..."` 属性，保留其它 props（如 `size`、`onClick`）。
-    // 自闭合标签的结尾 ` /` 也会被移除（转换时会重新追加）。
-    let attrs = attrsRaw.replace(NAME_ATTR_RE, '').replace(/\s*\/\s*$/, '')
-    // 规整多余空白（例如 `  size="x"` → ` size="x"`）
-    attrs = attrs.replace(/^\s+/, ' ').replace(/\s+$/, '')
-
-    let closeTagStart = -1
-    let closeTagEnd = -1
-    if (!selfClosing) {
-      // 寻找匹配的闭合标签 `</Icon>`（或 `</icon>`）—— 在掩码副本上查找，
-      // 这样字符串/注释里的 `</Icon>` 不会被匹配到。
-      const closeRe = new RegExp(`</${tagName}\s*>`, 'g')
-      closeRe.lastIndex = openTagEnd
-      const closeMatch = closeRe.exec(masked)
-      if (closeMatch) {
-        closeTagStart = closeMatch.index
-        closeTagEnd = closeMatch.index + closeMatch[0].length
-      }
-    }
-
+    const openTagStart = match.index
+    const openTagEnd = findOpeningTagEnd(code, tagRe.lastIndex)
+    if (openTagEnd < 0) continue
+    tagRe.lastIndex = openTagEnd
+    const attrStart = openTagStart + 1 + tagName.length
+    const attrsRaw = code.slice(attrStart, openTagEnd - 1)
+    const selfClosing = /\/\s*$/.test(attrsRaw)
+    const attrsWithoutSlash = attrsRaw.replace(/\s*\/\s*$/, '')
+    const attrs = stripManagedAttributes(attrsWithoutSlash).trimEnd()
+    const localAttrs = isVueSfc
+      ? ` url="${escapeAttribute(spriteUrl)}" :load-default-icons="false"`
+      : ` url="${escapeAttribute(spriteUrl)}" loadDefaultIcons={false}`
     usages.push({
-      component,
-      stem: iconName,
-      attrs,
-      selfClosing,
       openTagStart,
       openTagEnd,
-      closeTagStart,
-      closeTagEnd,
+      replacement: `<${tagName}${attrs}${localAttrs}${selfClosing ? ' /' : ''}>`,
     })
   }
-
-  return { usages, stillUsed }
+  return usages
 }

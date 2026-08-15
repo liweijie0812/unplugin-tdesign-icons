@@ -2,7 +2,7 @@
   <main class="app">
     <h1>unplugin-tdesign-icons · Vue 2 + Vite</h1>
     <p class="hint">
-      经典 SFC（Options API）里写 &lt;Icon name="..." /&gt;，构建时被插件改写为单图标深层组件并自动更新 components 注册（只打包用到的图标）。
+      通用 Icon 的静态和动态 name 都使用构建产物中的本地 svg-sprite。
     </p>
     <div class="icons">
       <div class="icon-card"><Icon name="add" /><span>add</span></div>
@@ -12,18 +12,19 @@
       <div class="icon-card"><Icon name="search" /><span>search</span></div>
       <div class="icon-card"><Icon name="time" /><span>time</span></div>
       <div class="icon-card"><Icon name="user" /><span>user</span></div>
+      <div class="icon-card"><Icon :name="dynamicIcon" /><span>dynamic</span></div>
     </div>
   </main>
 </template>
 
 <script>
-// 经典 SFC（Vue 2 Options API）：构建时被 unplugin-tdesign-icons 改写，例如
-//   <Icon name="close" /> → <CloseIcon />（自动注册并深层导入 close.js）
+// Vue 2 保持 Options API；localIcons 会保留 Icon 与动态 name，并注入本地 URL。
 import { Icon } from 'tdesign-icons-vue'
 
 export default {
   name: 'App',
   components: { Icon },
+  data: () => ({ dynamicIcon: 'unhappy' }),
 }
 </script>
 

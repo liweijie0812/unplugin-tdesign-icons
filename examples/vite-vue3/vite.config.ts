@@ -14,9 +14,8 @@ export default defineConfig({
     vue(),
     // Rewrite `import { CloseIcon } from 'tdesign-icons-vue-next'` into the
     // deep import of the single icon module at build time.
-    // localIcons: 额外把 `<Icon name="sneer" />` / `<t-icon name="xxx" />`
-    // 改写为 `<SneerIcon />` 等单图标组件，离线渲染、无需 CDN svg-sprite
-    //（见 App.vue 底部）。
+    // localIcons: 构建时下载图标包内声明的 CDN svg-sprite 到应用产物，
+    // 并为 `<Icon>` / `<t-icon>` 注入本地 URL，动态 name 也可离线渲染。
     TDesignIconsVueNext({ localIcons: true }),
   ],
 })
