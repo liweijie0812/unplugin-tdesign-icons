@@ -13,12 +13,15 @@
       <div class="icon-card"><Icon name="time" /><span>time</span></div>
       <div class="icon-card"><Icon name="user" /><span>user</span></div>
       <div class="icon-card"><Icon :name="dynamicIcon" /><span>dynamic</span></div>
+      <!-- The tdesign-vue global t-icon uses the same local sprite. -->
+      <div class="icon-card"><t-icon name="unhappy" /><span>t-icon</span></div>
     </div>
   </main>
 </template>
 
 <script>
 // Vue 2 uses Options API. localIcons preserves dynamic names and injects the local URL.
+// <Icon name="..."> is the sprite component imported from tdesign-icons-vue.
 import { Icon } from 'tdesign-icons-vue'
 
 export default {

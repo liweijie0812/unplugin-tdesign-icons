@@ -46,7 +46,7 @@ pnpm run preview # 预览生产产物（所有示例均支持）
 - `<Icon name="...">` 的静态和动态名称保留，运行时加载构建产物中的 `assets/tdesign-icons.js`。
 
 - **`vite-vue3`**：Vue 3 + Vite，并通过 `tdesign-vue-next` 真实注册全局 `<t-icon>`。
-- **`vite-vue2`**：Vue 2.7 + Vite，使用 `tdesign-icons-vue` 的静态与动态 `Icon`。
+- **`vite-vue2`**：Vue 2.7 + Vite，使用 `tdesign-icons-vue` 的静态与动态 `Icon`，并通过 `tdesign-vue` 真实注册全局 `<t-icon>`。
 - **`vite-react`**：React + Vite，点击计数按钮时动态切换通用图标名称。
 - **`webpack-vue3`**：Webpack 5 + Vue 3，并通过 `tdesign-vue-next` 真实注册全局 `<t-icon>`。
 - **`rollup-react`**：插件在 `rollup-plugin-esbuild` 之前处理 TSX，sprite URL 指向 `./dist/assets`。

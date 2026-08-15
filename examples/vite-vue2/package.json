@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "tdesign-icons-vue": "^0.4.9",
+    "tdesign-vue": "^1.16.1",
     "unplugin-tdesign-icons": "workspace:*",
     "vue": "^2.7.0"
   },
