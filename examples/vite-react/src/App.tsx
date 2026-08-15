@@ -20,9 +20,9 @@ function App() {
 
   return (
     <main className="app">
-      <h1>unplugin-tdesign-icons · React + Vite</h1>
+      <h1>unplugin-tdesign-icons - React + Vite</h1>
       <p className="hint">
-        具名组件按需深层导入，通用 Icon 的静态和动态 name 使用本地 svg-sprite。
+        Named components use deep imports. Static and dynamic Icon names use the local SVG sprite.
       </p>
 
       <div className="icons">
