@@ -1,4 +1,4 @@
 {
   "installDependencies": false,
-  "startCommand": "pnpm install && pnpm build && pnpm preview"
+  "startCommand": "npm install && npm run build && npm run preview"
 }
