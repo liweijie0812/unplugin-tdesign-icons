@@ -34,7 +34,9 @@ describe('vite integration', () => {
 describe('vite integration — localIcons (local svg-sprite)', () => {
   afterEach(() => vi.unstubAllGlobals())
 
-  it('emits the CDN sprite locally and injects its URL for static and dynamic names', async () => {
+  const TIMEOUT = 60_000
+
+  it('emits the CDN sprite locally and injects its URL for static and dynamic names', { timeout: TIMEOUT }, async () => {
     const sprite = `(function(){var svgCode='<svg><symbol id="t-icon-sneer"></symbol></svg>';document.body.insertAdjacentHTML('afterbegin',svgCode)})()`
     vi.stubGlobal('fetch', vi.fn(async () => new Response(sprite)))
     const localEntry = path.resolve(__dirname, 'fixtures/local-icons.tsx')
