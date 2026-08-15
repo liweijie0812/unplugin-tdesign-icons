@@ -1,6 +1,6 @@
 const path = require('node:path')
 const { VueLoaderPlugin } = require('vue-loader')
-// 按框架从 `/webpack` 子路径具名导入插件工厂，直接 `TDesignIconsVueNext()` 调用
+// Import the framework-bound plugin factory from the Webpack subpath.
 const { TDesignIconsVueNext } = require('unplugin-tdesign-icons/webpack')
 
 module.exports = {
@@ -29,7 +29,7 @@ module.exports = {
   },
   plugins: [
     new VueLoaderPlugin(),
-    // 具名图标继续深层导入，Icon/t-icon 使用构建产物中的本地 sprite。
-    TDesignIconsVueNext({ localIcons: true }),
+    // Named icons stay as deep imports; Icon/t-icon use the emitted local sprite.
+    TDesignIconsVueNext({ localIcons: { publicPath: './dist/' } }),
   ],
 }

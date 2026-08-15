@@ -1,5 +1,5 @@
 import { rspack } from '@rspack/core'
-// 按框架从 `/rspack` 子路径具名导入插件工厂，直接 `TDesignIconsReact()` 调用
+// Import the framework-bound plugin factory from the Rspack subpath.
 import { TDesignIconsReact } from 'unplugin-tdesign-icons/rspack'
 
 export default {
@@ -18,7 +18,7 @@ export default {
         test: /\.tsx$/,
         use: [
           {
-            // Rspack 内置 SWC，零配置编译 TSX（自动 jsx-runtime）
+            // Use Rspack's built-in SWC loader for TSX.
             loader: 'builtin:swc-loader',
             options: {
               jsc: {
@@ -31,7 +31,7 @@ export default {
     ],
   },
   plugins: [
-    // 根目录 index.html 加载 dist/main.js，因此 sprite URL 也指向 ./dist。
+    // index.html is above dist, so the public sprite URL includes ./dist.
     TDesignIconsReact({ localIcons: { publicPath: './dist/' } }),
   ],
 }

@@ -9,8 +9,8 @@ const dynamicIcon = 'unhappy'
 
 render(
   <main className="app">
-    <h1>unplugin-tdesign-icons · React + Rollup</h1>
-    <p className="hint">具名组件按需深层导入，通用 Icon 使用本地 svg-sprite。</p>
+    <h1>unplugin-tdesign-icons - React + Rollup</h1>
+    <p className="hint">Named components use deep imports. Icon uses the local SVG sprite.</p>
     <div className="icons">
       <div className="icon-card"><CloseIcon /><span>CloseIcon</span></div>
       <div className="icon-card"><SearchIcon /><span>SearchIcon</span></div>

@@ -1,8 +1,8 @@
 <template>
   <main class="app">
-    <h1>unplugin-tdesign-icons · Vue 2 + Vite</h1>
+    <h1>unplugin-tdesign-icons - Vue 2 + Vite</h1>
     <p class="hint">
-      通用 Icon 的静态和动态 name 都使用构建产物中的本地 svg-sprite。
+      Static and dynamic Icon names use the emitted local SVG sprite.
     </p>
     <div class="icons">
       <div class="icon-card"><Icon name="add" /><span>add</span></div>
@@ -18,7 +18,7 @@
 </template>
 
 <script>
-// Vue 2 保持 Options API；localIcons 会保留 Icon 与动态 name，并注入本地 URL。
+// Vue 2 uses Options API. localIcons preserves dynamic names and injects the local URL.
 import { Icon } from 'tdesign-icons-vue'
 
 export default {

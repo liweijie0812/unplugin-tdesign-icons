@@ -20,8 +20,8 @@ const dynamicIcon = 'unhappy'
 
 document.querySelector('#app').innerHTML = `
   <main class="app">
-    <h1>unplugin-tdesign-icons · Web Components</h1>
-    <p class="hint">具名组件按需深层导入，通用 t-icon 使用包内置的本地图标 JSON。</p>
+    <h1>unplugin-tdesign-icons - Web Components</h1>
+    <p class="hint">Named components use deep imports. Generic t-icon uses bundled local JSON.</p>
     <div class="icons">
       <div class="icon-card"><t-icon-add></t-icon-add><span>AddIcon</span></div>
       <div class="icon-card"><t-icon-chevron-down></t-icon-chevron-down><span>ChevronDownIcon</span></div>

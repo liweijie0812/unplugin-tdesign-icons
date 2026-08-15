@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-// `<Icon name="..." />` 是 TDesign 的通用图标组件（svg-sprite 渲染）。
-// 开启 localIcons 后，Icon 与 t-icon 会指向构建产物中的本地 svg-sprite；
-// name 保持不变，因此静态和动态名称都能工作。
+// Icon is TDesign's generic SVG-sprite component. With localIcons enabled,
+// Icon and t-icon use the emitted local sprite for static and dynamic names.
 import { Icon } from 'tdesign-icons-vue-next'
 
 const count = ref(0)
@@ -11,9 +10,9 @@ const dynamicIcon = ref('sneer')
 
 <template>
   <main class="app">
-    <h1>unplugin-tdesign-icons · Vue 3 + Vite</h1>
+    <h1>unplugin-tdesign-icons - Vue 3 + Vite</h1>
     <p class="hint">
-      模板里的 <code>&lt;Icon name="xxx" /&gt;</code> 会加载构建产物中的本地 svg-sprite。
+      <code>&lt;Icon name="xxx" /&gt;</code> loads the emitted local SVG sprite.
     </p>
 
     <div class="icons">
@@ -24,9 +23,9 @@ const dynamicIcon = ref('sneer')
       <div class="icon-card"><Icon name="search" /><span>search</span></div>
       <div class="icon-card"><Icon name="time" /><span>time</span></div>
       <div class="icon-card"><Icon name="user" /><span>user</span></div>
-      <!-- localIcons 同时支持动态 name -->
+      <!-- localIcons also supports dynamic names. -->
       <div class="icon-card"><Icon :name="dynamicIcon" /><span>dynamic Icon</span></div>
-      <!-- tdesign-vue-next 全局注册的 t-icon 使用相同本地 sprite -->
+      <!-- The tdesign-vue-next global t-icon uses the same local sprite. -->
       <div class="icon-card"><t-icon name="unhappy" /><span>t-icon name="unhappy"</span></div>
     </div>
 

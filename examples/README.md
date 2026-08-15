@@ -26,11 +26,13 @@ cd ../.. && pnpm install && pnpm run build && cd -
 cd vite-vue3
 pnpm run dev     # 开发模式（仅 Vite 系列示例支持）
 pnpm run build   # 生产构建
+pnpm run preview # 预览生产产物（所有示例均支持）
 ```
 
 > 示例的 `package.json` 通过 `"unplugin-tdesign-icons": "workspace:*"` 引用仓库根目录。
 > 包导出统一指向 `dist`，修改插件源码后需在根目录重新执行 `pnpm run build`。
 > 包管理器统一使用 pnpm（corepack 管理版本）。
+> StackBlitz 会自动执行 `pnpm install && pnpm build && pnpm preview`。
 
 > 💡 **CNB 云原生开发环境**：`vite-*` 示例的 `vite.config.ts` 已内置
 > `server: { host: true, allowedHosts: true }`，使 dev server 监听 `0.0.0.0`

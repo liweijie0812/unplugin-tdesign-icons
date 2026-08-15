@@ -106,6 +106,9 @@ importers:
       esbuild:
         specifier: ^0.28.0
         version: 0.28.1
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.3(@types/node@22.20.1)(terser@5.49.2)
 
   examples/rolldown-react:
     dependencies:
@@ -131,6 +134,9 @@ importers:
       rolldown:
         specifier: ^1.2.0
         version: 1.2.3
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.3(@types/node@22.20.1)(terser@5.49.2)
 
   examples/rollup-react:
     dependencies:
@@ -165,6 +171,9 @@ importers:
       rollup-plugin-esbuild:
         specifier: ^6.1.0
         version: 6.2.1(esbuild@0.28.1)(rollup@4.62.4)(supports-color@8.1.1)
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.3(@types/node@22.20.1)(terser@5.49.2)
 
   examples/rspack-react:
     dependencies:
@@ -193,6 +202,9 @@ importers:
       '@types/react-dom':
         specifier: ^18.3.0
         version: 18.3.7(@types/react@18.3.31)
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.3(@types/node@22.20.1)(terser@5.49.2)
 
   examples/vite-react:
     dependencies:
@@ -306,6 +318,9 @@ importers:
         specifier: ^3.4.0
         version: 3.5.41(typescript@5.9.3)
     devDependencies:
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.3(@types/node@22.20.1)(terser@5.49.2)
       vue-loader:
         specifier: ^17.4.2
         version: 17.4.2(@vue/compiler-sfc@3.5.41)(vue@3.5.41(typescript@5.9.3))(webpack@5.109.2)

@@ -7,8 +7,8 @@ const dynamicIcon = shallowRef('unhappy')
 
 <template>
   <main class="app">
-    <h1>unplugin-tdesign-icons · Vue 3 + Webpack</h1>
-    <p class="hint">具名组件按需深层导入，Icon 与 t-icon 使用本地 svg-sprite。</p>
+    <h1>unplugin-tdesign-icons - Vue 3 + Webpack</h1>
+    <p class="hint">Named components use deep imports. Icon and t-icon use the local SVG sprite.</p>
     <div class="icons">
       <div class="icon-card"><CloseIcon /><span>CloseIcon</span></div>
       <div class="icon-card"><SearchIcon /><span>SearchIcon</span></div>
