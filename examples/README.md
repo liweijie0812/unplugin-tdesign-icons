@@ -1,6 +1,6 @@
 # Examples
 
-每个示例都是一个独立、可直接运行的工程，用法与 unplugin-icons 的 examples 保持一致：进入目录安装依赖后即可 `dev` / `build`。
+每个示例都是一个独立的工程，用法与 unplugin-icons 的 examples 保持一致。示例通过 `workspace:*` 引用仓库根包，请先在仓库根目录安装依赖并构建插件，再运行示例。
 
 | 示例 | 技术栈 | 入口 |
 | --- | --- | --- |
@@ -19,11 +19,12 @@
 仓库根目录是 pnpm workspace，`examples/*` 通过 `workspace:*` 引用根包。
 
 ```bash
-# 根目录统一安装并构建插件
-cd ../.. && pnpm install && pnpm run build && cd -
+# 在仓库根目录统一安装依赖并构建插件
+pnpm install
+pnpm run build
 
 # 进入任一示例
-cd vite-vue3
+cd examples/vite-vue3
 pnpm run dev     # 开发模式（仅 Vite 系列示例支持）
 pnpm run build   # 生产构建
 pnpm run preview # 预览生产产物（所有示例均支持）
@@ -32,7 +33,7 @@ pnpm run preview # 预览生产产物（所有示例均支持）
 > 示例的 `package.json` 通过 `"unplugin-tdesign-icons": "workspace:*"` 引用仓库根目录。
 > 包导出统一指向 `dist`，修改插件源码后需在根目录重新执行 `pnpm run build`。
 > 包管理器统一使用 pnpm（corepack 管理版本）。
-> StackBlitz 会自动执行 `pnpm install && pnpm build && pnpm preview`。
+> StackBlitz 按各示例的 `.stackblitzrc` 自动执行 `npm install && npm run build && npm run preview`。
 
 > 💡 **CNB 云原生开发环境**：`vite-*` 示例的 `vite.config.ts` 已内置
 > `server: { host: true, allowedHosts: true }`，使 dev server 监听 `0.0.0.0`

@@ -9,6 +9,11 @@ export type Framework = 'vue' | 'vue-next' | 'react' | 'web-components'
 
 export interface LocalIconsOptions {
   /**
+   * 需要保留在本地 svg-sprite 中的图标名称。未配置时保留全部图标。
+   * 名称使用运行时 `name` 值，例如 `'close'`、`'add'`。
+   */
+  icons?: string[]
+  /**
    * 构建时下载的 TDesign svg-sprite 脚本地址。默认从当前图标包的
    * `esm/svg-sprite/svg-sprite.js` 中读取 CDN 常量。
    */
@@ -26,6 +31,7 @@ export interface LocalIconsOptions {
 }
 
 export interface ResolvedLocalIconsOptions {
+  icons?: string[]
   sourceUrl: string
   fileName: string
   publicPath: string

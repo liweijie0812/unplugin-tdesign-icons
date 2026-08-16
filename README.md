@@ -230,7 +230,7 @@ export default {
 | [`examples/rspack-react`](./examples/rspack-react) | Rspack + React，`import { TDesignIconsReact } from 'unplugin-tdesign-icons/rspack'` |
 | [`examples/esbuild-react`](./examples/esbuild-react) | esbuild + React，`import { TDesignIconsReact } from 'unplugin-tdesign-icons/esbuild'` |
 
-每个示例都可以 `pnpm install && pnpm run dev` / `pnpm run build` 直接跑起来，详见 [`examples/README.md`](./examples/README.md)。
+示例通过 pnpm workspace 的 `workspace:*` 引用仓库根包，首次运行前需要在仓库根目录安装依赖并构建插件；具体步骤和各构建工具的命令详见 [`examples/README.md`](./examples/README.md)。
 
 ## 验证
 
@@ -254,6 +254,8 @@ TDesignIconsVueNext({
   // 构建时下载 CDN sprite 到应用产物，并为 Icon 注入本地 URL
   localIcons: {
     // sourceUrl 默认从当前图标包的 svg-sprite 模块读取
+    // 只保留这些图标到本地 sprite；未配置时保留全部图标
+    // icons: ['close', 'add'],
     fileName: 'assets/tdesign-icons.js',
     publicPath: './',
   },
@@ -269,7 +271,8 @@ TDesignIconsVueNext({
 
 | 名称 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `localIcons` | `boolean \| LocalIconsOptions` | `false` | 下载 CDN svg-sprite 到构建产物，并为 `Icon` 注入本地 URL；对象形式可配置下载源、文件名和公开路径 |
+| `localIcons` | `boolean \| LocalIconsOptions` | `false` | 下载 CDN svg-sprite 到构建产物，并为 `Icon` 注入本地 URL；对象形式可配置图标筛选、下载源、文件名和公开路径 |
+| `localIcons.icons` | `string[]` | 未配置 | 本地 sprite 中保留的图标名称，例如 `['close', 'add']`；配置后未列出的图标不会存在于本地 sprite |
 | `aliases` | `Record<string, string>` | vue/vue-next 默认 `{ 't-icon': 'Icon' }`，其余 `{}` | 组件库封装标签 → 桶导出的映射，`localIcons` 据此处理 `<t-icon>` 等自定义标签 |
 | `includeSource` | `string[]` | `[]` | 只处理路径包含这些片段的文件 |
 | `exclude` | `(string \| RegExp)[]` | `[/node_modules/]` | 跳过的路径 |
@@ -288,6 +291,8 @@ svg-sprite。在内网或浏览器无法访问外网时，图标会渲染不出�
 
 这保留了原始 `name`，所以静态、Vue 动态绑定和 React 表达式都可以使用本地 sprite。构建机需要能访问 CDN；浏览器运行时不再请求 CDN。
 
+如果只需要本地保留部分图标，可以配置 `localIcons.icons`。插件仍会为识别到的图标标签注入本地 sprite URL，因此未列入列表的图标在本地 sprite 中不存在时不会显示，这是预期行为。
+
 ```ts
 // vite.config.ts
 import { defineConfig } from 'vite'
@@ -297,6 +302,7 @@ export default defineConfig({
   plugins: [
     TDesignIconsVueNext({
       localIcons: {
+        icons: ['close', 'add'],
         fileName: 'assets/tdesign-icons.js',
         publicPath: '/my-app/',
         // sourceUrl: 'https://your-cdn.example.com/icons.js',

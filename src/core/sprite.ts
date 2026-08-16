@@ -29,6 +29,7 @@ export function resolveLocalIconsOptions(
   }
 
   return {
+    icons: options.icons,
     sourceUrl,
     fileName: fileName.replace(/^\/+/, ''),
     publicPath,
@@ -71,6 +72,17 @@ export function localizeSprite(source: string, sourceUrl: string) {
     )
   }
   return source.replace(symbolIdRe, 'id=$1')
+}
+
+/** 只保留配置的图标 symbol；未配置时保留完整 sprite。 */
+export function filterSprite(source: string, icons?: string[]) {
+  if (icons === undefined) return source
+
+  const allowed = new Set(icons)
+  const symbolRe = /<symbol\b[^>]*\bid=(['"])([^'"]+)\1[^>]*>[\s\S]*?<\/symbol\s*>/g
+  return source.replace(symbolRe, (symbol, _quote: string, id: string) =>
+    allowed.has(id) ? symbol : '',
+  )
 }
 
 export async function downloadSprite(sourceUrl: string) {

@@ -4,6 +4,7 @@ import type { UnpluginBuildContext } from 'unplugin'
 import type { Framework, FrameworkConfig, Options, ResolvedOptions } from '../types.ts'
 import {
   downloadSprite,
+  filterSprite,
   resolveDefaultSpriteSourceUrl,
   resolveLocalIconsOptions,
 } from './sprite.ts'
@@ -60,7 +61,12 @@ export const unpluginFactory = (framework: Framework, options: Options = {}) => 
   let localSpriteSource: string | undefined
   const getLocalSprite = async (): Promise<string> => {
     if (!localIcons) throw new Error('[unplugin-tdesign-icons] localIcons is not enabled')
-    localSpriteSource ??= await downloadSprite(localIcons.sourceUrl)
+    if (!localSpriteSource) {
+      localSpriteSource = filterSprite(
+        await downloadSprite(localIcons.sourceUrl),
+        localIcons.icons,
+      )
+    }
     return localSpriteSource
   }
   // 合并默认值与用户选项，得到解析后的配置
