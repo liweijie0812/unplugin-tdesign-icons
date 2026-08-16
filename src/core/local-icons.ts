@@ -1,109 +1,101 @@
 import type { IconTagUsage } from './types.ts'
 
+const REGEX_PREFIX_CHARS = new Set('([{:;,=!?&|+-*%^~<>')
+const REGEX_PREFIX_KEYWORDS = new Set([
+  'await',
+  'case',
+  'delete',
+  'do',
+  'else',
+  'in',
+  'instanceof',
+  'return',
+  'throw',
+  'typeof',
+  'void',
+  'yield',
+])
+
+function canStartRegex(code: string, index: number) {
+  let end = index - 1
+  while (end >= 0 && /\s/.test(code[end]!)) end--
+  if (end < 0 || REGEX_PREFIX_CHARS.has(code[end]!)) return true
+
+  let start = end
+  while (start >= 0 && /[\w$]/.test(code[start]!)) start--
+  return REGEX_PREFIX_KEYWORDS.has(code.slice(start + 1, end + 1))
+}
+
 /** 首字母小写：`Icon` → `icon`，`TIcon` → `tIcon`。 */
 export function lowerFirst(s: string) {
   return s ? s[0]!.toLowerCase() + s.slice(1) : s
 }
 
-/**
- * 返回 `code` 的一份副本（长度相同），其中字符串字面量、模板字符串、
- * 行/块注释以及 HTML 注释的内容会被替换为空格。这样标签扫描器就不会把
- * 出现在字符串或注释里的 `<Icon ...>` 误当成真实的组件用法。
- *
- * `<tag ...>` 内的引号会被当作属性分隔符（原样保留），因此 `name="sneer"`
- * 能保留下来 —— 调用方会通过匹配到的下标从原始 `code` 中重新提取真实属性文本。
- */
-export function maskStringsAndComments(code: string): string {
-  const chars = code.split('')
-  const n = chars.length
+interface OpeningTag {
+  tagName: string
+  openTagStart: number
+  openTagEnd: number
+}
+
+/** 单次扫描源码，跳过字符串、正则、模板文本与注释，只返回真实的目标标签。 */
+function collectOpeningTags(code: string, accepted: Set<string>): OpeningTag[] {
+  const tags: OpeningTag[] = []
+  const n = code.length
   let i = 0
   let inTag = false
   let braceDepth = 0
   let inAttrString: string | null = null
   let inString: string | null = null
+  let inRegex = false
+  let inRegexCharClass = false
+  let inTemplateText = false
+  const templateExpressionDepths: number[] = []
   let inLineComment = false
   let inBlockComment = false
   let inHtmlComment = false
 
-  // 把 [start, end) 区间内的字符（换行符除外）替换为空格
-  const maskRange = (start: number, end: number) => {
-    for (let j = Math.max(0, start); j < Math.min(n, end); j++) {
-      if (chars[j] !== '\n') chars[j] = ' '
-    }
-  }
-
   while (i < n) {
-    const c = chars[i]
-    const next = i + 1 < n ? chars[i + 1] : ''
-    const after2 = i + 2 < n ? chars[i + 2] : ''
-    const after3 = i + 3 < n ? chars[i + 3] : ''
+    const c = code[i]!
+    const next = code[i + 1] ?? ''
+    const after2 = code[i + 2] ?? ''
+    const after3 = code[i + 3] ?? ''
 
-    if (!inString) {
-      // 行注释 `// ...`
-      if (inLineComment) {
-        if (c === '\n') inLineComment = false
-        else chars[i] = ' '
-        i++
-        continue
-      }
-      // 块注释 `/* ... */`
-      if (inBlockComment) {
-        if (c === '*' && next === '/') {
-          chars[i] = ' '
-          chars[i + 1] = ' '
-          inBlockComment = false
-          i += 2
-        } else {
-          chars[i] = ' '
-          i++
-        }
-        continue
-      }
-      // HTML 注释 `<!-- ... -->`（Vue SFC 模板）
-      if (inHtmlComment) {
-        if (c === '-' && next === '-' && after2 === '>') {
-          maskRange(i, i + 3)
-          inHtmlComment = false
-          i += 3
-        } else {
-          chars[i] = ' '
-          i++
-        }
-        continue
-      }
-      if (c === '/' && next === '/') {
-        chars[i] = ' '
-        chars[i + 1] = ' '
-        inLineComment = true
-        i += 2
-        continue
-      }
-      if (c === '/' && next === '*') {
-        chars[i] = ' '
-        chars[i + 1] = ' '
-        inBlockComment = true
-        i += 2
-        continue
-      }
-      if (c === '<' && next === '!' && after2 === '-' && after3 === '-') {
-        inHtmlComment = true
-        i += 4
-        continue
-      }
-    }
-
-    // 字符串 / 模板字面量（在标签属性区域之外）
-    if (!inString && !inTag && (c === '"' || c === "'" || c === '`')) {
-      inString = c
-      chars[i] = ' '
+    if (inLineComment) {
+      if (c === '\n') inLineComment = false
       i++
       continue
     }
+    if (inBlockComment) {
+      if (c === '*' && next === '/') {
+        inBlockComment = false
+        i += 2
+      } else {
+        i++
+      }
+      continue
+    }
+    if (inHtmlComment) {
+      if (c === '-' && next === '-' && after2 === '>') {
+        inHtmlComment = false
+        i += 3
+      } else {
+        i++
+      }
+      continue
+    }
+
+    if (inAttrString) {
+      if (c === '\\') {
+        i += 2
+        continue
+      }
+      if (c === inAttrString) inAttrString = null
+      i++
+      continue
+    }
+
     if (inString) {
-      chars[i] = ' '
-      // 跳过转义字符（如 `\"`）
       if (c === '\\' && i + 1 < n) {
-        chars[i + 1] = ' '
         i += 2
         continue
       }
@@ -112,32 +104,112 @@ export function maskStringsAndComments(code: string): string {
       continue
     }
 
-    // 跟踪 `<tag ...>` 区域，让其中的引号按属性处理而不是字符串
+    if (inRegex) {
+      if (c === '\\' && i + 1 < n) {
+        i += 2
+        continue
+      }
+      if (c === '[') inRegexCharClass = true
+      else if (c === ']') inRegexCharClass = false
+      else if (c === '/' && !inRegexCharClass) {
+        inRegex = false
+        i++
+        while (i < n && /[A-Za-z]/.test(code[i]!)) i++
+        continue
+      }
+      i++
+      continue
+    }
+
+    if (inTemplateText) {
+      if (c === '\\' && i + 1 < n) {
+        i += 2
+      } else if (c === '`') {
+        inTemplateText = false
+        i++
+      } else if (c === '$' && next === '{') {
+        templateExpressionDepths.push(1)
+        inTemplateText = false
+        i += 2
+      } else {
+        i++
+      }
+      continue
+    }
+
+    if (c === '/' && next === '/') {
+      inLineComment = true
+      i += 2
+      continue
+    }
+    if (c === '/' && next === '*') {
+      inBlockComment = true
+      i += 2
+      continue
+    }
+    if (c === '<' && next === '!' && after2 === '-' && after3 === '-') {
+      inHtmlComment = true
+      i += 4
+      continue
+    }
+
+    if (c === '`') {
+      inTemplateText = true
+      i++
+      continue
+    }
+
+    if (c === '"' || c === "'") {
+      if (inTag) inAttrString = c
+      else {
+        inString = c
+      }
+      i++
+      continue
+    }
+
+    if (c === '/' && (!inTag || braceDepth > 0) && canStartRegex(code, i)) {
+      inRegex = true
+      inRegexCharClass = false
+      i++
+      continue
+    }
+
+    if (templateExpressionDepths.length) {
+      const top = templateExpressionDepths.length - 1
+      if (c === '{') templateExpressionDepths[top] = templateExpressionDepths[top]! + 1
+      else if (c === '}') {
+        templateExpressionDepths[top] = templateExpressionDepths[top]! - 1
+        if (templateExpressionDepths[top] === 0) {
+          templateExpressionDepths.pop()
+          inTemplateText = true
+          i++
+          continue
+        }
+      }
+    }
+
     if (c === '<' && /[A-Za-z!/]/.test(next || ' ')) {
+      if (/[A-Za-z]/.test(next)) {
+        let nameEnd = i + 2
+        while (nameEnd < n && /[\w-]/.test(code[nameEnd]!)) nameEnd++
+        const tagName = code.slice(i + 1, nameEnd)
+        if (accepted.has(tagName)) {
+          const openTagEnd = findOpeningTagEnd(code, nameEnd)
+          if (openTagEnd >= 0) {
+            tags.push({ tagName, openTagStart: i, openTagEnd })
+            i = openTagEnd
+            inTag = false
+            braceDepth = 0
+            continue
+          }
+        }
+      }
       inTag = true
       i++
       continue
     }
     if (inTag) {
-      // 标签属性值里可能出现 `{...}` 对象/表达式（例如 `:popup-props="{...}"`、
-      // `@change="(v) => handler(v)"` 或 `:prop={foo}`）。其中可能包含 `=>` 的
-      // `>` 或嵌套的 `>`，若不加跟踪会在闭合引号之前提前退出 `inTag`，导致
-      // 后续的真实标签（如 `<t-icon>`）被误当作字符串内容掩码掉。
-      if (inAttrString) {
-        // 属性值字符串：跳过转义，遇到配对引号后结束
-        if (c === '\\') {
-          i++
-          continue
-        }
-        if (c === inAttrString) inAttrString = null
-        i++
-        continue
-      }
-      if (c === '"' || c === "'" || c === '`') {
-        inAttrString = c
-        i++
-        continue
-      }
       if (c === '{') {
         braceDepth++
         i++
@@ -159,7 +231,7 @@ export function maskStringsAndComments(code: string): string {
     i++
   }
 
-  return chars.join('')
+  return tags
 }
 
 function kebabCase(name: string) {
@@ -286,17 +358,8 @@ export function collectLocalIconTags(
   if (!accepted.size) return []
 
   const usages: IconTagUsage[] = []
-  const tagRe = /<([A-Za-z][\w-]*)\b/g
-  const masked = maskStringsAndComments(code)
   const jsxScriptRanges = isVueSfc ? collectVueJsxScriptRanges(code) : []
-  let match: RegExpExecArray | null
-  while ((match = tagRe.exec(masked))) {
-    const tagName = match[1]!
-    if (!accepted.has(tagName)) continue
-    const openTagStart = match.index
-    const openTagEnd = findOpeningTagEnd(code, tagRe.lastIndex)
-    if (openTagEnd < 0) continue
-    tagRe.lastIndex = openTagEnd
+  for (const { tagName, openTagStart, openTagEnd } of collectOpeningTags(code, accepted)) {
     const attrStart = openTagStart + 1 + tagName.length
     const attrsRaw = code.slice(attrStart, openTagEnd - 1)
     const selfClosing = /\/\s*$/.test(attrsRaw)

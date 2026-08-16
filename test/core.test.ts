@@ -331,7 +331,7 @@ export const A = () => <Icon name="add" />`
   })
 })
 
-describe('localIcons Vue template with arrow-function attributes', () => {
+describe('localIcons source scanner edge cases', () => {
   // 回归：当模板里某个标签属性含 `=>` 箭头函数（其 `>` 字符在引号内，不应被当作
   // 标签结束）时，后续的 `<t-icon>` 仍要被正确识别并注入本地 sprite。
   it('injects t-icon after an attribute containing an arrow function', async () => {
@@ -350,5 +350,55 @@ describe('localIcons Vue template with arrow-function attributes', () => {
 </template>`
     const out = await runLocalIcons(code, 'vue-next', '/project/src/App.vue')
     expect(out).toContain(`<t-icon name="home" url="./assets/tdesign-icons.js" :load-default-icons="false" />`)
+  })
+
+  it('does not treat a URL inside an attribute as a line comment', async () => {
+    const code = `<template><div :config="{ url: 'https://example.com' }"><t-icon name="close" /></div></template>`
+    const out = await runLocalIcons(code, 'vue-next', '/project/src/App.vue')
+    expect(out).toContain(`<t-icon name="close" url="./assets/tdesign-icons.js" :load-default-icons="false" />`)
+  })
+
+  it('keeps icon-like text masked after an escaped quote in a JSX attribute', async () => {
+    const code = [
+      '<script setup lang="tsx">',
+      String.raw`const node = <div title={"a\"}"} />`,
+      `const text = '<t-icon name="close" />'`,
+      '</script>',
+    ].join('\n')
+    const out = await runLocalIcons(code, 'vue-next', '/project/src/App.vue')
+    expect(out).toBeNull()
+  })
+
+  it('ignores icon-like text inside another tag attribute', async () => {
+    const code = `<template><div title="<t-icon name='close' />"></div></template>`
+    const out = await runLocalIcons(code, 'vue-next', '/project/src/App.vue')
+    expect(out).toBeNull()
+  })
+
+  it('ignores icon-like text inside a regular expression', async () => {
+    const code = [
+      '<script setup lang="tsx">',
+      String.raw`const pattern = /<t-icon name="close" \/>/`,
+      '</script>',
+    ].join('\n')
+    const out = await runLocalIcons(code, 'vue-next', '/project/src/App.vue')
+    expect(out).toBeNull()
+  })
+
+  it('scans JSX inside a template literal expression', async () => {
+    const code = [
+      `import { Icon } from 'tdesign-icons-react'`,
+      'const node = `text ${<Icon name="close" />}`',
+    ].join('\n')
+    const out = await runLocalIcons(code)
+    expect(out).toContain(
+      '`text ${<Icon name="close" url="./assets/tdesign-icons.js" loadDefaultIcons={false} />}`',
+    )
+  })
+
+  it('ignores icon-like text in template literal text', async () => {
+    const code = `import { Icon } from 'tdesign-icons-react'\nconst text = \`<Icon name="close" />\``
+    const out = await runLocalIcons(code)
+    expect(out).toBeNull()
   })
 })
