@@ -1,0 +1,26 @@
+name: auto-release
+on:
+  pull_request:
+    branches: [main]
+    types: [closed]
+    paths: package.json
+
+jobs:
+  generator:
+    if: github.event.pull_request.merged && startsWith(github.head_ref, 'release/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          cache: "pnpm"
+
+      - run: pnpm ci
+
+      - run: pnpm build
+
+      - run: pnpm publish
