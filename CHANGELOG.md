@@ -1,3 +1,9 @@
+## 🌈 0.2.0 `2026-08-16`
+
+### 🚀 Features
+
+- `localIcons.icons`: 支持按图标名称裁剪本地 SVG Sprite，减少构建产物体积 @liweijie
+
 ## 🌈 0.1.0 `2026-08-16`
 
 ### 🚀 Features
