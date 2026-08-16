@@ -7,24 +7,46 @@
  */
 export type Framework = 'vue' | 'vue-next' | 'react' | 'web-components'
 
+export interface LocalIconsOptions {
+  /**
+   * 构建时下载的 TDesign svg-sprite 脚本地址。默认从当前图标包的
+   * `esm/svg-sprite/svg-sprite.js` 中读取 CDN 常量。
+   */
+  sourceUrl?: string
+  /**
+   * sprite 脚本在应用构建产物中的文件名。
+   * @default 'assets/tdesign-icons.js'
+   */
+  fileName?: string
+  /**
+   * 注入到 `Icon` 的 URL 前缀。非根路径部署时应与应用 public base 一致。
+   * @default './'
+   */
+  publicPath?: string
+}
+
+export interface ResolvedLocalIconsOptions {
+  sourceUrl: string
+  fileName: string
+  publicPath: string
+  url: string
+}
+
 /**
  * 插件选项。各构建工具子路径下的具名工厂已绑定到对应框架，
  * 因此框架本身并不是用户侧可配置的选项。
  */
 export interface Options {
   /**
-   * 在构建期把 `<Icon name="xxx" />`（默认会从 CDN 加载 iconfont 的
-   * svg-sprite `Icon` 组件）改写成对应的深层单图标组件 `<XxxIcon />`。
-   *
-   * 这样图标会使用本地打包的 SVG 数据渲染，在无法访问 CDN sprite
-   *（`https://tdesign.gtimg.com/...`）的离线 / 内网环境中也能正常工作。
+   * 构建时下载 TDesign CDN svg-sprite 到应用产物，并把 `<Icon>` / `<t-icon>`
+   * 的 `url` 指向本地文件。静态和动态 `name` 均可使用本地 sprite。
    *
    * @default false
    */
-  localIcons?: boolean
+  localIcons?: boolean | LocalIconsOptions
   /**
-   * 映射到桶 `Icon` 组件的额外标签名，让 `localIcons` 在构建期也能改写
-   * `<t-icon name="xxx" />` 这类封装标签。
+   * 映射到桶 `Icon` 组件的额外标签名，让 `localIcons` 也能为
+   * `<t-icon name="xxx" />` 这类封装标签注入本地 sprite URL。
    *
    * Key = 模板中使用的标签（例如 `'t-icon'`），value = 它包装的桶导出名
    *（通常是 `'Icon'`）。当你的组件库把 TDesign `Icon` 封装成便捷标签时很有用。
@@ -47,7 +69,7 @@ export interface Options {
 
 export interface ResolvedOptions {
   framework: Framework
-  localIcons: boolean
+  localIcons: false | ResolvedLocalIconsOptions
   aliases: Record<string, string>
   includeSource: string[]
   exclude: (string | RegExp)[]
@@ -58,7 +80,7 @@ export interface FrameworkConfig {
   packageName: string
   componentDir: 'esm/components'
   includeSource: string[]
-  localIcons: boolean
+  localIcons: false | ResolvedLocalIconsOptions
   aliases: Record<string, string>
 }
 

@@ -1,6 +1,5 @@
 const path = require('node:path')
 const { VueLoaderPlugin } = require('vue-loader')
-// 按框架从 `/webpack` 子路径具名导入插件工厂，直接 `TDesignIconsVueNext()` 调用
 const { TDesignIconsVueNext } = require('unplugin-tdesign-icons/webpack')
 
 module.exports = {
@@ -29,7 +28,6 @@ module.exports = {
   },
   plugins: [
     new VueLoaderPlugin(),
-    // 把 `import { XxxIcon } from 'tdesign-icons-vue-next'` 改写为单图标深层导入
-    TDesignIconsVueNext(),
+    TDesignIconsVueNext({ localIcons: { publicPath: './dist/' } }),
   ],
 }

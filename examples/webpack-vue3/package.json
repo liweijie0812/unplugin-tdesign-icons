@@ -4,15 +4,18 @@
   "private": true,
   "description": "unplugin-tdesign-icons + Vue 3 (Webpack)",
   "scripts": {
-    "build": "webpack"
+    "build": "webpack",
+    "preview": "vite --host 0.0.0.0"
   },
   "dependencies": {
     "tdesign-icons-vue-next": "^0.4.9",
+    "tdesign-vue-next": "^1.20.6",
     "unplugin-tdesign-icons": "workspace:*",
     "vue": "^3.4.0"
   },
   "devDependencies": {
     "vue-loader": "^17.4.2",
+    "vite": "^6.0.0",
     "webpack": "^5.90.0",
     "webpack-cli": "^5.1.4"
   }

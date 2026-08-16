@@ -251,9 +251,13 @@ export default {
 
 ```ts
 TDesignIconsVueNext({
-  // 把 `<Icon name="xxx" />` 在编译期改写为单图标组件，离线渲染、不再请求 CDN
-  localIcons: true,
-  // 组件库封装标签 → 桶导出的映射（vue/vue-next 默认识别 `<t-icon>`）
+  // 构建时下载 CDN sprite 到应用产物，并为 Icon 注入本地 URL
+  localIcons: {
+    // sourceUrl 默认从当前图标包的 svg-sprite 模块读取
+    fileName: 'assets/tdesign-icons.js',
+    publicPath: './',
+  },
+  // 组件库封装标签 → 桶导出的映射
   // aliases: { 'my-t-icon': 'Icon' },
   // 只处理路径包含这些片段的文件
   // includeSource: ['src'],
@@ -265,19 +269,24 @@ TDesignIconsVueNext({
 
 | 名称 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `localIcons` | `boolean` | `false` | 把 `<Icon name="xxx" />` 在编译期改写为对应单图标组件 `<XxxIcon />`，离线渲染、不再请求 CDN svg-sprite |
-| `aliases` | `Record<string, string>` | vue/vue-next 默认 `{ 't-icon': 'Icon' }`，其余 `{}` | 组件库封装标签 → 桶导出的映射，`localIcons` 据此改写 `<t-icon name="xxx" />` 等自定义标签 |
+| `localIcons` | `boolean \| LocalIconsOptions` | `false` | 下载 CDN svg-sprite 到构建产物，并为 `Icon` 注入本地 URL；对象形式可配置下载源、文件名和公开路径 |
+| `aliases` | `Record<string, string>` | vue/vue-next 默认 `{ 't-icon': 'Icon' }`，其余 `{}` | 组件库封装标签 → 桶导出的映射，`localIcons` 据此处理 `<t-icon>` 等自定义标签 |
 | `includeSource` | `string[]` | `[]` | 只处理路径包含这些片段的文件 |
 | `exclude` | `(string \| RegExp)[]` | `[/node_modules/]` | 跳过的路径 |
 
 
-## 无网络环境：`localIcons` 开关
+## 运行时离线：`localIcons` 开关
 
-默认情况下，TDesign 的 `<Icon name="xxx" />` 组件（svg-sprite 版）会在运行时从 CDN
-（`https://tdesign.gtimg.com/...`）拉取全量图标 sprite。在内网 / 离线 / 构建机无外网等场景下，图标会渲染不出来。
+默认情况下，TDesign 的 `<Icon name="xxx" />` 组件会在浏览器运行时从 CDN 拉取全量
+svg-sprite。在内网或浏览器无法访问外网时，图标会渲染不出来。
 
-开启 `localIcons: true` 后，插件会在**编译期**把 `<Icon name="xxx" />` 改写为对应的单图标深层组件 `<XxxIcon />`，
-同时自动注入 `import XxxIcon from 'tdesign-icons-xxx/esm/components/xxx.js'`。这样图标数据直接打进产物，**完全离线渲染**，不再请求任何 CDN：
+开启 `localIcons` 后，插件会在**构建期**完成以下处理：
+
+1. 从已安装图标包的 `esm/svg-sprite/svg-sprite.js` 读取 `CDN_ICONFONT_URL` 或 `CDN_SVGSPRITE_URL`；
+2. 下载 sprite 脚本，把 symbol 的 `t-icon-` 前缀转换为自定义 URL 模式需要的 ID；
+3. 输出 `assets/tdesign-icons.js`，并给 `<Icon>` / `<t-icon>` 注入该地址和 `loadDefaultIcons=false`。
+
+这保留了原始 `name`，所以静态、Vue 动态绑定和 React 表达式都可以使用本地 sprite。构建机需要能访问 CDN；浏览器运行时不再请求 CDN。
 
 ```ts
 // vite.config.ts
@@ -286,42 +295,65 @@ import { TDesignIconsVueNext } from 'unplugin-tdesign-icons/vite'
 
 export default defineConfig({
   plugins: [
-    TDesignIconsVueNext({ localIcons: true }),
+    TDesignIconsVueNext({
+      localIcons: {
+        fileName: 'assets/tdesign-icons.js',
+        publicPath: '/my-app/',
+        // sourceUrl: 'https://your-cdn.example.com/icons.js',
+      },
+    }),
   ],
 })
 ```
 
 ```vue
-<!-- 源码写法不变，构建时被改写为 <SneerIcon /> -->
 <template>
   <Icon name="sneer" />
-  <Icon name="unhappy" />
+  <Icon :name="currentIcon" />
 </template>
 <script setup>
 import { Icon } from 'tdesign-icons-vue-next'
 </script>
 ```
 
-构建后等价于：
+构建时会为标签注入：
 
 ```vue
 <template>
-  <SneerIcon />
-  <UnhappyIcon />
+  <Icon name="sneer" url="/my-app/assets/tdesign-icons.js" :load-default-icons="false" />
+  <Icon :name="currentIcon" url="/my-app/assets/tdesign-icons.js" :load-default-icons="false" />
 </template>
 <script setup>
-import SneerIcon from 'tdesign-icons-vue-next/esm/components/sneer.js'
-import UnhappyIcon from 'tdesign-icons-vue-next/esm/components/unhappy.js'
+import { Icon } from 'tdesign-icons-vue-next'
 </script>
 ```
 
 ### TDesign Vue 组件库的 `<t-icon>` 封装
 
 TDesign Vue 组件库为了方便用户习惯，把 `Icon` 封装成了 `<t-icon>`（全局注册）。
-vue / vue-next 框架开启 `localIcons` 后默认也会识别这种写法，构建时同样改写为单图标组件：
+vue / vue-next 框架开启 `localIcons` 后默认也会识别这种写法，并注入相同的本地 URL：
+
+```ts
+import { createApp } from 'vue'
+import { Icon } from 'tdesign-vue-next'
+
+createApp(App).use(Icon).mount('#app')
+```
 
 ```vue
 <!-- 源码：TDesign Vue 组件库的 <t-icon> 封装 -->
+<template>
+  <t-icon name="sneer" />
+</template>
+```
+
+如果项目没有安装并全局注册 TDesign Vue 组件库，仅使用 `tdesign-icons-vue-next`，
+需要显式提供 `TIcon` 组件绑定：
+
+```vue
+<script setup>
+import { Icon as TIcon } from 'tdesign-icons-vue-next'
+</script>
 <template>
   <t-icon name="sneer" />
 </template>
@@ -331,11 +363,8 @@ vue / vue-next 框架开启 `localIcons` 后默认也会识别这种写法，构
 
 ```vue
 <template>
-  <SneerIcon />
+  <t-icon name="sneer" url="./assets/tdesign-icons.js" :load-default-icons="false" />
 </template>
-<script setup>
-import SneerIcon from 'tdesign-icons-vue-next/esm/components/sneer.js'
-</script>
 ```
 
 如果你的组件库把 `Icon` 封装成了其它标签（例如 React 的 `<MyTIcon>`），可以用 `aliases` 选项自定义：
@@ -346,26 +375,26 @@ import { TDesignIconsReact } from 'unplugin-tdesign-icons/vite'
 
 export default defineConfig({
   plugins: [
-    // 把 <MyTIcon name="xxx" /> 也改写为单图标组件
+    // 给 <MyTIcon name="xxx" /> 注入本地 sprite URL
     TDesignIconsReact({ localIcons: true, aliases: { 'my-t-icon': 'Icon' } }),
   ],
 })
 ```
 
-> - 支持 Vue 2 / Vue 3 / React 的 `<Icon name="xxx" />` 写法（含 `<icon>`、kebab-case 别名如 `import { Icon as MyIcon }` → `<my-icon>` 等）。
-> - **TDesign Vue 组件库**把 `Icon` 封装为 `<t-icon>`（全局注册），vue / vue-next 框架默认也会识别并改写 `<t-icon name="xxx" />`；其它框架可用 `aliases` 选项配置自定义封装标签。
-> - 仅改写**静态字符串** `name`；`name={动态变量}` / `:name="动态变量"` 无法静态确定图标，会保留原 `<Icon>` 与 CDN 加载逻辑。
-> - 字符串 / 注释中的 `<Icon ...>` / `<t-icon ...>` 文本不会被误改（基于字符串掩码扫描）。
+> - 支持 Vue 2 / Vue 3 / React 的静态与动态 `name`，以及导入别名的 kebab-case 标签。
+> - Vue / Vue Next 默认识别 TDesign Vue 组件库全局注册的 `<t-icon>`；其它框架可通过 `aliases` 配置封装标签。
+> - `publicPath` 默认是 `./`。应用部署到子路径或使用嵌套路由时，应显式设置为应用公开 base。
+> - 已有 `url` / `loadDefaultIcons` 会被本地配置覆盖；字符串和注释中的标签文本不会被修改。
 > - Web Components 的 `<t-icon name="xxx" />` 本身就使用本地 JSON 渲染、不依赖 CDN，无需开启。
 
 ## 工作原理
 
 1. 用 `es-module-lexer` 精确解析出代码中所有 `import { ... } from 'tdesign-icons-xxx'` 语句；
 2. 从图标包内置的 `esm/manifest.js` 构建 `导出名 → 文件名(stem)` 映射（`导出名 = manifest.icon + 'Icon'`）；
-3. 对 `.vue` 文件先尝试 SFC 管道：用 `@vue/compiler-sfc` 解析 `<script setup>` + `<template>`，把静态 `<Icon name="..." />` 改写为单图标组件（见上文），并注入对应的深层导入；
-4. 开启 `localIcons` 时，额外用字符串掩码扫描把 `<Icon name="xxx" />` / `<t-icon name="xxx" />` 改写为对应的深层单图标组件 `<XxxIcon />`（vue/vue-next 默认识别 TDesign Vue 组件库的 `<t-icon>` 封装，可通过 `aliases` 自定义）；
-5. 把命中的具名导入改写为 `import XxxIcon from 'tdesign-icons-xxx/esm/components/xxx.js'`；
-6. 同一语句中的非图标导入（如 `IconBase`、`IconFont`）保留原桶导入。
+3. 未开启 `localIcons` 时，Vue SFC 静态 `<Icon name>` 继续按原逻辑转换为深层单图标组件；
+4. 开启 `localIcons` 时，下载并发射 sprite，通过字符串掩码扫描为 `Icon` 和别名标签覆盖本地 URL；
+5. `CloseIcon` 等具名导入仍改写为 `tdesign-icons-xxx/esm/components/close.js`，不受 sprite 本地化影响；
+6. 同一语句中的 `Icon`、`IconBase`、`IconFont` 等非单图标导出保留桶导入。
 
 > ⚠️ 改写后的深层导入带 `.js` 后缀，Node/SSR/严格 ESM 环境下也能正常解析。
 

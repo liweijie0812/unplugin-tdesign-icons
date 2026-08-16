@@ -1,8 +1,8 @@
 <template>
   <main class="app">
-    <h1>unplugin-tdesign-icons · Vue 2 + Vite</h1>
+    <h1>unplugin-tdesign-icons - Vue 2 + Vite</h1>
     <p class="hint">
-      经典 SFC（Options API）里写 &lt;Icon name="..." /&gt;，构建时被插件改写为单图标深层组件并自动更新 components 注册（只打包用到的图标）。
+      Static and dynamic Icon names use the emitted local SVG sprite.
     </p>
     <div class="icons">
       <div class="icon-card"><Icon name="add" /><span>add</span></div>
@@ -12,18 +12,22 @@
       <div class="icon-card"><Icon name="search" /><span>search</span></div>
       <div class="icon-card"><Icon name="time" /><span>time</span></div>
       <div class="icon-card"><Icon name="user" /><span>user</span></div>
+      <div class="icon-card"><Icon :name="dynamicIcon" /><span>dynamic</span></div>
+      <!-- The tdesign-vue global t-icon uses the same local sprite. -->
+      <div class="icon-card"><t-icon name="unhappy" /><span>t-icon</span></div>
     </div>
   </main>
 </template>
 
 <script>
-// 经典 SFC（Vue 2 Options API）：构建时被 unplugin-tdesign-icons 改写，例如
-//   <Icon name="close" /> → <CloseIcon />（自动注册并深层导入 close.js）
+// Vue 2 uses Options API. localIcons preserves dynamic names and injects the local URL.
+// <Icon name="..."> is the sprite component imported from tdesign-icons-vue.
 import { Icon } from 'tdesign-icons-vue'
 
 export default {
   name: 'App',
   components: { Icon },
+  data: () => ({ dynamicIcon: 'unhappy' }),
 }
 </script>
 

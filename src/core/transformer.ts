@@ -1,14 +1,14 @@
 import { parse } from 'es-module-lexer'
 import { MagicString } from 'magic-string'
 import type { FrameworkConfig, TransformResult } from '../types.ts'
-import { collectIconUsages, findInjectPosition } from './local-icons.ts'
-import { loadManifest, loadManifestByName } from './manifest.ts'
+import { collectLocalIconTags } from './local-icons.ts'
+import { loadManifest } from './manifest.ts'
 import { transformSfc } from './vue-sfc.ts'
 
 /**
  * 创建针对某个框架配置的转换器。
  * 负责把「图标桶导入」改写为「深层单图标导入」，并在开启 `localIcons` 时
- * 把 `<Icon name="...">` 模板标签改写为深层单图标组件。
+ * 把 `<Icon>` / `<t-icon>` 指向构建产物中的本地 svg-sprite。
  */
 export function createTransformer(config: FrameworkConfig) {
   // 缓存 manifest 数据，避免每个文件都重复解析
@@ -29,8 +29,8 @@ export function createTransformer(config: FrameworkConfig) {
       // 未开启 `localIcons` 时，转换器只处理图标包导入：文件不含包名即无任何可改之处。
       return null
     }
-    // `localIcons` 开启时，无包导入的文件仍可能因 `<Icon>` / 别名标签
-    //（例如 `<t-icon>`）需要被扫描改写，需进一步做标签预检。
+    // `localIcons` 开启时，无包导入的文件仍可能因别名标签（例如全局注册的
+    // `<t-icon>`）需要注入本地 sprite URL，需进一步做标签预检。
     if (!mentionsPkg && config.localIcons) {
       const tagRe = /<(Icon|icon|[A-Za-z][\w-]*)\b/g
       let canRewrite = false
@@ -69,8 +69,7 @@ export function createTransformer(config: FrameworkConfig) {
     //    这里的廉价预过滤可避免对不含图标的文件加载（体积较大的）SFC 解析器。
     //
     // 2. `localIcons` 开启：整个文件（任意后缀，包括 `.vue`）由下面的字符串
-    //    掩码标签扫描器处理，它同样能识别 `<t-icon>` 封装标签（`aliases`）和
-    //    全局注册的图标。此时跳过 SFC 流水线，避免两条路径对同一文件双重改写。
+    //    掩码标签扫描器注入 sprite URL。静态和动态 name 都保留原样。
     if (!config.localIcons && /\.vue$/.test(id ?? '') && (code.includes(config.packageName) || /<Icon\b/.test(code))) {
       const sfcResult = await transformSfc(code, id!, config)
       if (sfcResult) return sfcResult
@@ -84,10 +83,7 @@ export function createTransformer(config: FrameworkConfig) {
             (m) => ({ start: m.index!, end: m.index! + m[0].length, n: m[1]! }),
           )
 
-    // 开启 `localIcons` 时，我们还会把 `<Icon name="xxx" />`
-    //（默认会加载 CDN sprite 的 svg-sprite `Icon`）改写成深层单图标组件
-    // `<XxxIcon />`，让图标离线也能渲染。
-    // 先收集桶 `Icon` 在本文件导入时的本地名。
+    // 收集桶 `Icon` 在本文件导入时的本地名，供 localIcons 标签扫描使用。
     let iconLocalNames: string[] = []
     if (config.localIcons) {
       for (const stmt of stmts) {
@@ -110,16 +106,20 @@ export function createTransformer(config: FrameworkConfig) {
       }
     }
 
-    // 收集 `<Icon name="xxx" />` 用法，以便在开启 `localIcons` 时改写为深层
-    // 单图标组件。当存在桶 `Icon` 绑定 **或** 配置了别名标签（例如 `t-icon`）时
-    // 运行 —— 组件库可能全局注册了 `t-icon`，而同一文件里没有显式 `import { Icon }`。
-    const iconUsages: ReturnType<typeof collectIconUsages>['usages'] = []
-    const iconStillUsed = new Set<string>()
+    // 当存在桶 `Icon` 绑定或配置了别名标签时，为所有静态/动态图标用法覆盖
+    // url 与 loadDefaultIcons。组件库可能全局注册 `t-icon`，无需显式 import。
+    const iconTags = [] as ReturnType<typeof collectLocalIconTags>
     const hasAliasTags = config.aliases ? Object.keys(config.aliases).length > 0 : false
     if (config.localIcons && (iconLocalNames.length || hasAliasTags)) {
-      const collected = collectIconUsages(code, iconLocalNames, config.aliases, loadManifestByName(cachedLoadManifest()))
-      iconUsages.push(...collected.usages)
-      for (const name of collected.stillUsed) iconStillUsed.add(name)
+      iconTags.push(
+        ...collectLocalIconTags(
+          code,
+          iconLocalNames,
+          config.aliases,
+          config.localIcons.url,
+          /\.vue$/.test(id ?? ''),
+        ),
+      )
     }
 
     // 已使用的图标 key（`本地名@stem`），用于去重注入的深层导入
@@ -148,17 +148,9 @@ export function createTransformer(config: FrameworkConfig) {
       const iconSpecs: { original: string; local: string; stem: string }[] = []
       const barrelSpecifiers: string[] = []
       const inStatement = new Set<string>()
-      const aliasBarrel = config.aliases ? Object.values(config.aliases) : []
-      // 可被 `localIcons` 改写标签的桶导出：始终是 `Icon`，加上 `aliases` 引用的
-      const rewritableBarrel = ['Icon', ...aliasBarrel]
       for (const name of specifiers) {
         const [original, alias] = name.split(/\s+as\s+/)
         const local = alias ? alias.trim() : original
-        // 如果 `localIcons` 已把所有 `<Icon ...>` 引用全部改写，就丢掉
-        // 现在已无用的桶 `Icon` 导入，让 CDN-sprite 模块能被 tree-shake。
-        if (config.localIcons && rewritableBarrel.includes(original) && !iconStillUsed.has(local)) {
-          continue
-        }
         if (!original || !exportMap.has(original)) {
           // 非图标导出（普通值/类型），原样保留在桶导入中
           barrelSpecifiers.push(name)
@@ -174,8 +166,7 @@ export function createTransformer(config: FrameworkConfig) {
       }
 
       if (!iconSpecs.length && !barrelSpecifiers.length) {
-        // 整条语句变成空（例如只导入了 `Icon`，且因 `localIcons` 改写了所有
-        // 用法而被丢弃）—— 直接移除整条语句。
+        // 整条语句只包含重复或无法保留的图标说明符，直接移除。
         s.remove(stmt.start, stmt.end)
         changed = true
         continue
@@ -210,33 +201,9 @@ export function createTransformer(config: FrameworkConfig) {
       changed = true
     }
 
-    // 把 `<Icon name="xxx" />` 改写为 `<XxxIcon />`，并为引用的图标注入深层
-    // 导入（让应用完全离线可用）。新导入追加在最后一条已有 import 语句之后
-    //（`.vue` SFC 则插入 `<script>` 块内），保证输出仍是合法代码。
-    const injectPos = findInjectPosition(code, stmts)
-    const injectBuffer: string[] = []
-    for (const usage of iconUsages) {
-      const component = usage.component
-      const key = `${component}@${usage.stem}`
-      // 若该图标此前未导入过，则生成深层导入语句
-      if (!usedIconKeys.has(key)) {
-        usedIconKeys.add(key)
-        injectBuffer.push(
-          `import ${component} from '${config.packageName}/${config.componentDir}/${usage.stem}.js'`,
-        )
-      }
-      // `<Icon name="sneer" ... />` → `<SneerIcon ... />`
-      s.overwrite(usage.openTagStart, usage.openTagEnd, `<${component}${usage.attrs}${usage.selfClosing ? ' /' : ''}>`)
-      if (usage.closeTagStart >= 0) {
-        s.overwrite(usage.closeTagStart, usage.closeTagEnd, `</${component}>`)
-      }
-      changed = true
-    }
-
-    // 注入新生成的深层导入语句
-    if (injectBuffer.length) {
-      const sep = /\n$/.test(code.slice(0, injectPos)) ? '' : '\n'
-      s.appendLeft(injectPos, `${sep}${injectBuffer.join('\n')}\n`)
+    // 覆盖用户已有的 url/loadDefaultIcons，保证只加载本次构建输出的 sprite。
+    for (const usage of iconTags) {
+      s.overwrite(usage.openTagStart, usage.openTagEnd, usage.replacement)
       changed = true
     }
 
