@@ -5,8 +5,12 @@ on:
     types: [closed]
     paths: package.json
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
-  generator:
+  publish:
     if: github.event.pull_request.merged && startsWith(github.head_ref, 'release/')
     runs-on: ubuntu-latest
     steps:
