@@ -18,6 +18,8 @@ export function maskStringsAndComments(code: string): string {
   const n = chars.length
   let i = 0
   let inTag = false
+  let braceDepth = 0
+  let inAttrString: string | null = null
   let inString: string | null = null
   let inLineComment = false
   let inBlockComment = false
@@ -116,8 +118,41 @@ export function maskStringsAndComments(code: string): string {
       i++
       continue
     }
-    if (c === '>' && inTag) {
-      inTag = false
+    if (inTag) {
+      // 标签属性值里可能出现 `{...}` 对象/表达式（例如 `:popup-props="{...}"`、
+      // `@change="(v) => handler(v)"` 或 `:prop={foo}`）。其中可能包含 `=>` 的
+      // `>` 或嵌套的 `>`，若不加跟踪会在闭合引号之前提前退出 `inTag`，导致
+      // 后续的真实标签（如 `<t-icon>`）被误当作字符串内容掩码掉。
+      if (inAttrString) {
+        // 属性值字符串：跳过转义，遇到配对引号后结束
+        if (c === '\\') {
+          i++
+          continue
+        }
+        if (c === inAttrString) inAttrString = null
+        i++
+        continue
+      }
+      if (c === '"' || c === "'" || c === '`') {
+        inAttrString = c
+        i++
+        continue
+      }
+      if (c === '{') {
+        braceDepth++
+        i++
+        continue
+      }
+      if (c === '}' && braceDepth > 0) {
+        braceDepth--
+        i++
+        continue
+      }
+      if (c === '>' && braceDepth === 0) {
+        inTag = false
+        i++
+        continue
+      }
       i++
       continue
     }

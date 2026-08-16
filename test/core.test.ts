@@ -330,3 +330,25 @@ export const A = () => <Icon name="add" />`
     expect(out).toContain(`<t-icon name="close" url="./assets/tdesign-icons.js" :load-default-icons="false" />`)
   })
 })
+
+describe('localIcons Vue template with arrow-function attributes', () => {
+  // 回归：当模板里某个标签属性含 `=>` 箭头函数（其 `>` 字符在引号内，不应被当作
+  // 标签结束）时，后续的 `<t-icon>` 仍要被正确识别并注入本地 sprite。
+  it('injects t-icon after an attribute containing an arrow function', async () => {
+    const code = `<template>
+  <t-dropdown :popup-props="{ onVisibleChange: (v, c) => handle(v, c), visible: active === path }">
+    <t-icon name="refresh" />
+  </t-dropdown>
+</template>`
+    const out = await runLocalIcons(code, 'vue-next', '/project/src/App.vue')
+    expect(out).toContain(`<t-icon name="refresh" url="./assets/tdesign-icons.js" :load-default-icons="false" />`)
+  })
+
+  it('injects t-icon after an @change arrow-function attribute', async () => {
+    const code = `<template>
+  <div @change="(v) => handleChange(v)"><t-icon name="home" /></div>
+</template>`
+    const out = await runLocalIcons(code, 'vue-next', '/project/src/App.vue')
+    expect(out).toContain(`<t-icon name="home" url="./assets/tdesign-icons.js" :load-default-icons="false" />`)
+  })
+})
