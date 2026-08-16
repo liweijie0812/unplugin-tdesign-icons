@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { unpluginFactory } from '../src/core'
 import {
   downloadSprite,
+  filterSprite,
   joinPublicPath,
   localizeSprite,
   resolveDefaultSpriteSourceUrl,
@@ -29,6 +30,14 @@ describe('local svg-sprite asset', () => {
     expect(localized).toContain('id="close"')
     expect(localized).toContain('id="add"')
     expect(localized).not.toContain('id="t-icon-')
+  })
+
+  it('filters the localized sprite to configured icons', () => {
+    const localized = localizeSprite(spriteSource, 'https://cdn.test/icons.js')
+    const filtered = filterSprite(localized, ['close'])
+
+    expect(filtered).toContain('id="close"')
+    expect(filtered).not.toContain('id="add"')
   })
 
   it('rejects a response that is not a TDesign sprite', () => {
@@ -59,6 +68,7 @@ describe('local svg-sprite asset', () => {
       localIcons: {
         sourceUrl: 'https://cdn.test/build-start-icons.js',
         fileName: 'static/icons.js',
+        icons: ['close'],
       },
     })
     const emitFile = vi.fn()
@@ -68,6 +78,7 @@ describe('local svg-sprite asset', () => {
       fileName: 'static/icons.js',
       source: expect.stringContaining('id="close"'),
     })
+    expect((emitFile.mock.calls[0]![0] as { source: string }).source).not.toContain('id="add"')
   })
 
   it('joins relative and absolute public paths', () => {

@@ -247,6 +247,22 @@ export const A = () => <Icon name="sneer" />`
     expect(result && result.code).toContain(`url="/console/static/icons.js"`)
   })
 
+  it('uses the local sprite for every Icon tag when the sprite is filtered', async () => {
+    const code = `import { Icon } from 'tdesign-icons-react'
+export const A = ({ n }) => <><Icon name="close" /><Icon name={n} /></>`
+    const plugin = unpluginFactory('react', {
+      localIcons: { icons: ['close'] },
+    })
+    const result = (await plugin.transform.call({}, code, '/project/src/App.tsx')) as TransformResult
+
+    expect(result && result.code).toContain(
+      `<Icon name="close" url="./assets/tdesign-icons.js" loadDefaultIcons={false} />`,
+    )
+    expect(result && result.code).toContain(
+      `<Icon name={n} url="./assets/tdesign-icons.js" loadDefaultIcons={false} />`,
+    )
+  })
+
   it('does not touch Icon when localIcons is disabled', async () => {
     const code = `import { Icon } from 'tdesign-icons-react'
 export const A = () => <Icon name="sneer" />`
