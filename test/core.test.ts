@@ -230,6 +230,20 @@ export const A = () => <><Icon name="sneer" /><CloseIcon /></>`
     expect(out).toContain(`import { Icon } from 'tdesign-icons-vue-next'`)
   })
 
+  it.each(['tsx', 'jsx'])('uses JSX props inside a Vue SFC %s script', async (lang) => {
+    const code = `<script setup lang="${lang}">
+const menuIcon = (item) => <t-icon name={item.icon} />
+</script>
+<template><t-icon :name="name" /></template>`
+    const out = await runLocalIcons(code, 'vue-next', '/project/src/MenuContent.vue')
+    expect(out).toContain(
+      `<t-icon name={item.icon} url="./assets/tdesign-icons.js" loadDefaultIcons={false} />`,
+    )
+    expect(out).toContain(
+      `<t-icon :name="name" url="./assets/tdesign-icons.js" :load-default-icons="false" />`,
+    )
+  })
+
   it('supports an aliased Icon import', async () => {
     const code = `<template><TIcon name="sneer" /></template>
 <script setup>import { Icon as TIcon } from 'tdesign-icons-vue-next'</script>`

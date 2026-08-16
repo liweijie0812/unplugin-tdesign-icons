@@ -219,6 +219,21 @@ function findOpeningTagEnd(code: string, start: number) {
   return -1
 }
 
+/** 收集 Vue SFC 中允许 JSX 的 script 内容范围。 */
+function collectVueJsxScriptRanges(code: string) {
+  const ranges: [number, number][] = []
+  const scriptRe = /<script\b([^>]*)>/gi
+  let match: RegExpExecArray | null
+  while ((match = scriptRe.exec(code))) {
+    if (!/\blang\s*=\s*(['"])(?:tsx|jsx)\1/i.test(match[1]!)) continue
+    const end = code.indexOf('</script>', scriptRe.lastIndex)
+    if (end < 0) continue
+    ranges.push([scriptRe.lastIndex, end])
+    scriptRe.lastIndex = end + '</script>'.length
+  }
+  return ranges
+}
+
 /** 收集静态和动态 name 的图标标签，并让它们统一加载构建产物中的 sprite。 */
 export function collectLocalIconTags(
   code: string,
@@ -238,6 +253,7 @@ export function collectLocalIconTags(
   const usages: IconTagUsage[] = []
   const tagRe = /<([A-Za-z][\w-]*)\b/g
   const masked = maskStringsAndComments(code)
+  const jsxScriptRanges = isVueSfc ? collectVueJsxScriptRanges(code) : []
   let match: RegExpExecArray | null
   while ((match = tagRe.exec(masked))) {
     const tagName = match[1]!
@@ -251,7 +267,9 @@ export function collectLocalIconTags(
     const selfClosing = /\/\s*$/.test(attrsRaw)
     const attrsWithoutSlash = attrsRaw.replace(/\s*\/\s*$/, '')
     const attrs = stripManagedAttributes(attrsWithoutSlash).trimEnd()
-    const localAttrs = isVueSfc
+    const usesVueTemplateSyntax =
+      isVueSfc && !jsxScriptRanges.some(([start, end]) => openTagStart >= start && openTagStart < end)
+    const localAttrs = usesVueTemplateSyntax
       ? ` url="${escapeAttribute(spriteUrl)}" :load-default-icons="false"`
       : ` url="${escapeAttribute(spriteUrl)}" loadDefaultIcons={false}`
     usages.push({
