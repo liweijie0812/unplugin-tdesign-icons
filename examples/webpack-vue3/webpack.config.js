@@ -1,6 +1,5 @@
 const path = require('node:path')
 const { VueLoaderPlugin } = require('vue-loader')
-// Import the framework-bound plugin factory from the Webpack subpath.
 const { TDesignIconsVueNext } = require('unplugin-tdesign-icons/webpack')
 
 module.exports = {
@@ -29,7 +28,6 @@ module.exports = {
   },
   plugins: [
     new VueLoaderPlugin(),
-    // Named icons stay as deep imports; Icon/t-icon use the emitted local sprite.
     TDesignIconsVueNext({ localIcons: { publicPath: './dist/' } }),
   ],
 }

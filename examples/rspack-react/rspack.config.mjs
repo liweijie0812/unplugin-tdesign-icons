@@ -1,5 +1,4 @@
 import { rspack } from '@rspack/core'
-// Import the framework-bound plugin factory from the Rspack subpath.
 import { TDesignIconsReact } from 'unplugin-tdesign-icons/rspack'
 
 export default {
@@ -31,7 +30,6 @@ export default {
     ],
   },
   plugins: [
-    // index.html is above dist, so the public sprite URL includes ./dist.
     TDesignIconsReact({ localIcons: { publicPath: './dist/' } }),
   ],
 }
