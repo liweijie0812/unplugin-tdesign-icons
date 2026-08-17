@@ -1,3 +1,13 @@
+## 🌈 0.2.1 `2026-08-17`
+
+### 🐞 Bug Fixes
+
+- `localIcons`: 修复 Vue SFC JSX/TSX 属性中的箭头函数、URL、正则和模板字符串等内容干扰图标标签扫描的问题，确保后续图标正确注入本地 Sprite @liweijie0812
+
+### ⚡ Performance
+
+- `localIcons`: 优化本地图标标签扫描逻辑，减少源码掩码和重复遍历开销 @liweijie0812
+
 ## 🌈 0.2.0 `2026-08-16`
 
 ### 🚀 Features
