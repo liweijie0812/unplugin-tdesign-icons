@@ -1,6 +1,7 @@
 # unplugin-tdesign-icons
 
-[![NPM version](https://img.shields.io/npm/v/unplugin-tdesign-icons?color=a1b858&label=)](https://www.npmjs.com/package/unplugin-tdesign-icons)
+[![NPM version](https://img.shields.io/npm/v/unplugin-tdesign-icons?color=a1b858&label=npm)](https://www.npmjs.com/package/unplugin-tdesign-icons)
+[![NPM downloads](https://img.shields.io/npm/dm/unplugin-tdesign-icons?color=4c1&label=downloads)](https://www.npmjs.com/package/unplugin-tdesign-icons)
 
 > On-demand import of [TDesign Icons](https://github.com/Tencent/tdesign-icons) for **Vue 2** (`tdesign-icons-vue`), **Vue 3** (`tdesign-icons-vue-next`), **React** (`tdesign-icons-react`) and **Web Components** (`tdesign-icons-web-components`).
 >
