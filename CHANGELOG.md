@@ -1,3 +1,13 @@
+## 🌈 0.2.2 `2026-08-27`
+
+### 🐞 Bug Fixes
+
+- `localIcons`: 修复默认 `publicPath: './'` 注入相对路径后，history 路由（如 `/xx`）下 sprite 被解析为 `/xx/assets/tdesign-icons.js` 导致 404 的问题 @liweijie0812
+
+### 🚀 Features
+
+- `localIcons.publicPath`: 未显式配置时自动跟随构建器公开 base —— Vite 读取 `base`，webpack / rspack 读取 `output.publicPath`（含 dev server）；无法感知时（`'auto'`、rollup / rolldown / esbuild）回退为根路径 `/`，显式配置始终优先 @liweijie0812
+
 ## 🌈 0.2.1 `2026-08-17`
 
 ### 🐞 Bug Fixes
