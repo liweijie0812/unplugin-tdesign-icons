@@ -258,7 +258,6 @@ TDesignIconsVueNext({
     // 只保留这些图标到本地 sprite；未配置时保留全部图标
     // icons: ['close', 'add'],
     fileName: 'assets/tdesign-icons.js',
-    publicPath: './',
   },
   // 组件库封装标签 → 桶导出的映射
   // aliases: { 'my-t-icon': 'Icon' },
@@ -274,6 +273,8 @@ TDesignIconsVueNext({
 | --- | --- | --- | --- |
 | `localIcons` | `boolean \| LocalIconsOptions` | `false` | 下载 CDN svg-sprite 到构建产物，并为 `Icon` 注入本地 URL；对象形式可配置图标筛选、下载源、文件名和公开路径 |
 | `localIcons.icons` | `string[]` | 未配置 | 本地 sprite 中保留的图标名称，例如 `['close', 'add']`；配置后未列出的图标不会存在于本地 sprite |
+| `localIcons.fileName` | `string` | `'assets/tdesign-icons.js'` | sprite 脚本在构建产物中的文件名 |
+| `localIcons.publicPath` | `string` | 自动感知（见下方说明） | 注入到 `Icon` 的 URL 前缀；显式配置始终优先 |
 | `aliases` | `Record<string, string>` | vue/vue-next 默认 `{ 't-icon': 'Icon' }`，其余 `{}` | 组件库封装标签 → 桶导出的映射，`localIcons` 据此处理 `<t-icon>` 等自定义标签 |
 | `includeSource` | `string[]` | `[]` | 只处理路径包含这些片段的文件 |
 | `exclude` | `(string \| RegExp)[]` | `[/node_modules/]` | 跳过的路径 |
@@ -300,12 +301,13 @@ import { defineConfig } from 'vite'
 import { TDesignIconsVueNext } from 'unplugin-tdesign-icons/vite'
 
 export default defineConfig({
+  // base 会自动应用到 localIcons 的注入 URL，无需再配置 publicPath
+  base: '/my-app/',
   plugins: [
     TDesignIconsVueNext({
       localIcons: {
         icons: ['close', 'add'],
         fileName: 'assets/tdesign-icons.js',
-        publicPath: '/my-app/',
         // sourceUrl: 'https://your-cdn.example.com/icons.js',
       },
     }),
@@ -370,7 +372,7 @@ import { Icon as TIcon } from 'tdesign-icons-vue-next'
 
 ```vue
 <template>
-  <t-icon name="sneer" url="./assets/tdesign-icons.js" :load-default-icons="false" />
+  <t-icon name="sneer" url="/assets/tdesign-icons.js" :load-default-icons="false" />
 </template>
 ```
 
@@ -390,7 +392,7 @@ export default defineConfig({
 
 > - 支持 Vue 2 / Vue 3 / React 的静态与动态 `name`，以及导入别名的 kebab-case 标签。
 > - Vue / Vue Next 默认识别 TDesign Vue 组件库全局注册的 `<t-icon>`；其它框架可通过 `aliases` 配置封装标签。
-> - `publicPath` 默认是 `./`。应用部署到子路径或使用嵌套路由时，应显式设置为应用公开 base。
+> - `publicPath` 未显式配置时自动跟随构建器公开 base：Vite 读取 `base`，webpack / rspack 读取 `output.publicPath`；dev server 同样生效。无法感知时（`publicPath: 'auto'`、rollup / rolldown / esbuild）回退为根路径 `/`，history 路由下也能正常访问。子路径部署且无法感知 base 时请显式配置。
 > - 已有 `url` / `loadDefaultIcons` 会被本地配置覆盖；字符串和注释中的标签文本不会被修改。
 > - Web Components 的 `<t-icon name="xxx" />` 本身就使用本地 JSON 渲染、不依赖 CDN，无需开启。
 

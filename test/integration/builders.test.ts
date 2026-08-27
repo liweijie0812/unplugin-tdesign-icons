@@ -11,6 +11,7 @@ import { TDesignIconsReact as esbuildPlugin } from '../../src/esbuild'
 
 const require = createRequire(import.meta.url)
 const fixture = path.resolve(__dirname, 'fixture-react.ts')
+const localFixture = path.resolve(__dirname, '../fixtures/local-icons.tsx')
 
 // The bundle output of an on-demand build must contain the real Close icon SVG
 // path data but no barrel import of `tdesign-icons-react`.
@@ -122,6 +123,42 @@ describe('multi-bundler integration (Vite / Rollup / Rolldown / Webpack / Rspack
     expect(fs.readFileSync(path.join(outDir, SPRITE_FILE), 'utf8')).toContain('id="close"')
   })
 
+  it('webpack: localIcons url follows output.publicPath', { timeout: TIMEOUT }, async () => {
+    const webpack = (await import('webpack')).default
+    const outDir = path.resolve('/tmp/wp-publicpath-dist')
+    fs.rmSync(outDir, { recursive: true, force: true })
+    const compiler = webpack({
+      mode: 'production',
+      entry: localFixture,
+      output: { path: outDir, filename: 'bundle.js', publicPath: '/my-app/' },
+      resolve: { extensions: ['.tsx', '.ts', '.js'] },
+      module: {
+        rules: [
+          {
+            test: /\.tsx?$/,
+            exclude: /node_modules/,
+            use: {
+              loader: require.resolve('ts-loader'),
+              options: { transpileOnly: true, compilerOptions: { jsx: 'react' } },
+            },
+          },
+        ],
+      },
+      plugins: [webpackPlugin(localOptions)],
+      stats: 'errors-only',
+    })
+
+    const code = await new Promise<string>((resolve, reject) => {
+      compiler.run((err: any, stats: any) => {
+        if (err) return reject(err)
+        if (stats.hasErrors()) return reject(new Error(stats.toString()))
+        resolve(fs.readFileSync(path.join(outDir, 'bundle.js'), 'utf-8'))
+      })
+    })
+    expect(code).toContain('/my-app/assets/tdesign-icons.js')
+    expect(code).not.toContain('"./assets/tdesign-icons.js"')
+  })
+
   it('rspack: rewrites on-demand and bundles only used icons', { timeout: TIMEOUT }, async () => {
     const { rspack } = await import('@rspack/core')
     const outDir = path.resolve('/tmp/rs-integration-dist')
@@ -154,6 +191,42 @@ describe('multi-bundler integration (Vite / Rollup / Rolldown / Webpack / Rspack
     expect(code).toContain(CLOSE_SVG)
     expect(hasBarrel(code)).toBe(false)
     expect(fs.readFileSync(path.join(outDir, SPRITE_FILE), 'utf8')).toContain('id="close"')
+  })
+
+  it('rspack: localIcons url follows output.publicPath', { timeout: TIMEOUT }, async () => {
+    const { rspack } = await import('@rspack/core')
+    const outDir = path.resolve('/tmp/rs-publicpath-dist')
+    fs.rmSync(outDir, { recursive: true, force: true })
+    const compiler = rspack({
+      mode: 'production',
+      entry: localFixture,
+      output: { path: outDir, filename: 'bundle.js', publicPath: '/my-app/' },
+      resolve: { extensions: ['.tsx', '.ts', '.js'] },
+      module: {
+        rules: [
+          {
+            test: /\.tsx?$/,
+            exclude: /node_modules/,
+            use: {
+              loader: require.resolve('ts-loader'),
+              options: { transpileOnly: true, compilerOptions: { jsx: 'react' } },
+            },
+          },
+        ],
+      },
+      plugins: [rspackPlugin(localOptions)],
+      stats: 'errors-only',
+    })
+
+    const code = await new Promise<string>((resolve, reject) => {
+      compiler.run((err: any, stats: any) => {
+        if (err) return reject(err)
+        if (stats.hasErrors()) return reject(new Error(stats.toString()))
+        resolve(fs.readFileSync(path.join(outDir, 'bundle.js'), 'utf-8'))
+      })
+    })
+    expect(code).toContain('/my-app/assets/tdesign-icons.js')
+    expect(code).not.toContain('"./assets/tdesign-icons.js"')
   })
 
   it('esbuild: rewrites on-demand and bundles only used icons', { timeout: TIMEOUT }, async () => {

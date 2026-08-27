@@ -21,7 +21,7 @@ export function resolveLocalIconsOptions(
   const options = typeof localIcons === 'object' ? localIcons : {}
   const sourceUrl = options.sourceUrl ?? defaultSourceUrl
   const fileName = options.fileName ?? DEFAULT_SPRITE_FILE_NAME
-  const publicPath = options.publicPath ?? './'
+  const publicPath = options.publicPath ?? '/'
 
   if (!sourceUrl) throw new Error('[unplugin-tdesign-icons] localIcons.sourceUrl cannot be empty')
   if (!fileName || fileName.endsWith('/') || fileName.split(/[\\/]/).includes('..')) {
@@ -61,6 +61,21 @@ export function resolveDefaultSpriteSourceUrl(packageName: string) {
   throw new Error(
     `[unplugin-tdesign-icons] No CDN svg-sprite URL found in "${packageName}". Set localIcons.sourceUrl explicitly.`,
   )
+}
+
+/**
+ * 未显式配置 `publicPath` 时，把构建器公开 base 原地写入解析后的 localIcons 配置。
+ * `resolved` 对象被 transformer 与 dev 中间件按引用共享，且各框架钩子均先于
+ * transform 执行，因此这里原地更新即可全局生效。`base` 为空或 `'auto'` 时跳过
+ *（`'auto'` 只有运行时才能确定，构建期回退到 `/`）。
+ */
+export function applyPublicPathBase(
+  resolved: ResolvedLocalIconsOptions,
+  base: string | undefined,
+) {
+  if (!base || base === 'auto') return
+  resolved.publicPath = base
+  resolved.url = joinPublicPath(base, resolved.fileName)
 }
 
 export function localizeSprite(source: string, sourceUrl: string) {

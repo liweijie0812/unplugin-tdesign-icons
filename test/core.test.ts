@@ -175,7 +175,7 @@ describe('localIcons (local svg-sprite URL injection)', () => {
 export const A = () => <Icon name="sneer" />`
     const out = await runLocalIcons(code)
     expect(out).toContain(`import { Icon } from 'tdesign-icons-react'`)
-    expect(out).toContain(`<Icon name="sneer" url="./assets/tdesign-icons.js" loadDefaultIcons={false} />`)
+    expect(out).toContain(`<Icon name="sneer" url="/assets/tdesign-icons.js" loadDefaultIcons={false} />`)
     expect(out).not.toContain('SneerIcon')
   })
 
@@ -184,7 +184,7 @@ export const A = () => <Icon name="sneer" />`
 export const A = ({ n }) => <Icon name={n} size="large" onClick={fn} />`
     const out = await runLocalIcons(code)
     expect(out).toContain(
-      `<Icon name={n} size="large" onClick={fn} url="./assets/tdesign-icons.js" loadDefaultIcons={false} />`,
+      `<Icon name={n} size="large" onClick={fn} url="/assets/tdesign-icons.js" loadDefaultIcons={false} />`,
     )
   })
 
@@ -193,7 +193,7 @@ export const A = ({ n }) => <Icon name={n} size="large" onClick={fn} />`
 export const A = ({ n }) => <Icon name={n > 1 ? 'add' : 'close'} onClick={() => select(n)} />`
     const out = await runLocalIcons(code)
     expect(out).toContain(
-      `<Icon name={n > 1 ? 'add' : 'close'} onClick={() => select(n)} url="./assets/tdesign-icons.js" loadDefaultIcons={false} />`,
+      `<Icon name={n > 1 ? 'add' : 'close'} onClick={() => select(n)} url="/assets/tdesign-icons.js" loadDefaultIcons={false} />`,
     )
   })
 
@@ -201,7 +201,7 @@ export const A = ({ n }) => <Icon name={n > 1 ? 'add' : 'close'} onClick={() => 
     const code = `import { Icon } from 'tdesign-icons-react'
 export const A = () => <Icon name="sneer" url={remoteUrl} loadDefaultIcons />`
     const out = await runLocalIcons(code)
-    expect(out).toContain(`<Icon name="sneer" url="./assets/tdesign-icons.js" loadDefaultIcons={false} />`)
+    expect(out).toContain(`<Icon name="sneer" url="/assets/tdesign-icons.js" loadDefaultIcons={false} />`)
     expect(out).not.toContain('remoteUrl')
   })
 
@@ -209,7 +209,7 @@ export const A = () => <Icon name="sneer" url={remoteUrl} loadDefaultIcons />`
     const code = `import { Icon } from 'tdesign-icons-react'
 export const A = () => <Icon name="sneer">child</Icon>`
     const out = await runLocalIcons(code)
-    expect(out).toContain(`<Icon name="sneer" url="./assets/tdesign-icons.js" loadDefaultIcons={false}>child</Icon>`)
+    expect(out).toContain(`<Icon name="sneer" url="/assets/tdesign-icons.js" loadDefaultIcons={false}>child</Icon>`)
   })
 
   it('keeps named icon imports optimized as deep imports', async () => {
@@ -225,8 +225,8 @@ export const A = () => <><Icon name="sneer" /><CloseIcon /></>`
     const code = `<template><t-icon :name="name" /><icon name="close" /></template>
 <script setup>import { Icon } from 'tdesign-icons-vue-next'</script>`
     const out = await runLocalIcons(code, 'vue-next', '/project/src/App.vue')
-    expect(out).toContain(`<t-icon :name="name" url="./assets/tdesign-icons.js" :load-default-icons="false" />`)
-    expect(out).toContain(`<icon name="close" url="./assets/tdesign-icons.js" :load-default-icons="false" />`)
+    expect(out).toContain(`<t-icon :name="name" url="/assets/tdesign-icons.js" :load-default-icons="false" />`)
+    expect(out).toContain(`<icon name="close" url="/assets/tdesign-icons.js" :load-default-icons="false" />`)
     expect(out).toContain(`import { Icon } from 'tdesign-icons-vue-next'`)
   })
 
@@ -237,10 +237,10 @@ const menuIcon = (item) => <t-icon name={item.icon} />
 <template><t-icon :name="name" /></template>`
     const out = await runLocalIcons(code, 'vue-next', '/project/src/MenuContent.vue')
     expect(out).toContain(
-      `<t-icon name={item.icon} url="./assets/tdesign-icons.js" loadDefaultIcons={false} />`,
+      `<t-icon name={item.icon} url="/assets/tdesign-icons.js" loadDefaultIcons={false} />`,
     )
     expect(out).toContain(
-      `<t-icon :name="name" url="./assets/tdesign-icons.js" :load-default-icons="false" />`,
+      `<t-icon :name="name" url="/assets/tdesign-icons.js" :load-default-icons="false" />`,
     )
   })
 
@@ -248,7 +248,7 @@ const menuIcon = (item) => <t-icon name={item.icon} />
     const code = `<template><TIcon name="sneer" /></template>
 <script setup>import { Icon as TIcon } from 'tdesign-icons-vue-next'</script>`
     const out = await runLocalIcons(code, 'vue-next', '/project/src/App.vue')
-    expect(out).toContain(`<TIcon name="sneer" url="./assets/tdesign-icons.js" :load-default-icons="false" />`)
+    expect(out).toContain(`<TIcon name="sneer" url="/assets/tdesign-icons.js" :load-default-icons="false" />`)
   })
 
   it('uses custom publicPath and fileName values', async () => {
@@ -270,10 +270,10 @@ export const A = ({ n }) => <><Icon name="close" /><Icon name={n} /></>`
     const result = (await plugin.transform.call({}, code, '/project/src/App.tsx')) as TransformResult
 
     expect(result && result.code).toContain(
-      `<Icon name="close" url="./assets/tdesign-icons.js" loadDefaultIcons={false} />`,
+      `<Icon name="close" url="/assets/tdesign-icons.js" loadDefaultIcons={false} />`,
     )
     expect(result && result.code).toContain(
-      `<Icon name={n} url="./assets/tdesign-icons.js" loadDefaultIcons={false} />`,
+      `<Icon name={n} url="/assets/tdesign-icons.js" loadDefaultIcons={false} />`,
     )
   })
 
@@ -297,7 +297,7 @@ describe('localIcons aliases and source safety', () => {
   it('injects the default global t-icon alias without an Icon import', async () => {
     const code = `<template><t-icon :name="dynamic" /></template>`
     const out = await runLocalIcons(code, 'vue-next', '/project/src/App.vue')
-    expect(out).toContain(`<t-icon :name="dynamic" url="./assets/tdesign-icons.js" :load-default-icons="false" />`)
+    expect(out).toContain(`<t-icon :name="dynamic" url="/assets/tdesign-icons.js" :load-default-icons="false" />`)
   })
 
   it('supports custom aliases and ignores unconfigured aliases', async () => {
@@ -308,7 +308,7 @@ describe('localIcons aliases and source safety', () => {
     const plugin = unpluginFactory('react', { localIcons: true, aliases: { 'my-icon': 'Icon' } })
     const result = (await plugin.transform.call({}, code, '/project/src/App.tsx')) as TransformResult
     expect(result && result.code).toContain(
-      `<my-icon name="sneer" url="./assets/tdesign-icons.js" loadDefaultIcons={false} />`,
+      `<my-icon name="sneer" url="/assets/tdesign-icons.js" loadDefaultIcons={false} />`,
     )
   })
 
@@ -320,14 +320,14 @@ export const A = () => <Icon name="add" />`
     const out = await runLocalIcons(code)
     expect(out).toContain(`const text = '<Icon name="sneer" />'`)
     expect(out).toContain(`// <Icon name="close" />`)
-    expect(out).toContain(`<Icon name="add" url="./assets/tdesign-icons.js" loadDefaultIcons={false} />`)
+    expect(out).toContain(`<Icon name="add" url="/assets/tdesign-icons.js" loadDefaultIcons={false} />`)
   })
 
   it('does not alter t-icon tags inside Vue comments', async () => {
     const code = `<template><!-- <t-icon name="sneer" /> --><t-icon name="close" /></template>`
     const out = await runLocalIcons(code, 'vue-next', '/project/src/App.vue')
     expect(out).toContain(`<!-- <t-icon name="sneer" /> -->`)
-    expect(out).toContain(`<t-icon name="close" url="./assets/tdesign-icons.js" :load-default-icons="false" />`)
+    expect(out).toContain(`<t-icon name="close" url="/assets/tdesign-icons.js" :load-default-icons="false" />`)
   })
 })
 
@@ -341,7 +341,7 @@ describe('localIcons source scanner edge cases', () => {
   </t-dropdown>
 </template>`
     const out = await runLocalIcons(code, 'vue-next', '/project/src/App.vue')
-    expect(out).toContain(`<t-icon name="refresh" url="./assets/tdesign-icons.js" :load-default-icons="false" />`)
+    expect(out).toContain(`<t-icon name="refresh" url="/assets/tdesign-icons.js" :load-default-icons="false" />`)
   })
 
   it('injects t-icon after an @change arrow-function attribute', async () => {
@@ -349,13 +349,13 @@ describe('localIcons source scanner edge cases', () => {
   <div @change="(v) => handleChange(v)"><t-icon name="home" /></div>
 </template>`
     const out = await runLocalIcons(code, 'vue-next', '/project/src/App.vue')
-    expect(out).toContain(`<t-icon name="home" url="./assets/tdesign-icons.js" :load-default-icons="false" />`)
+    expect(out).toContain(`<t-icon name="home" url="/assets/tdesign-icons.js" :load-default-icons="false" />`)
   })
 
   it('does not treat a URL inside an attribute as a line comment', async () => {
     const code = `<template><div :config="{ url: 'https://example.com' }"><t-icon name="close" /></div></template>`
     const out = await runLocalIcons(code, 'vue-next', '/project/src/App.vue')
-    expect(out).toContain(`<t-icon name="close" url="./assets/tdesign-icons.js" :load-default-icons="false" />`)
+    expect(out).toContain(`<t-icon name="close" url="/assets/tdesign-icons.js" :load-default-icons="false" />`)
   })
 
   it('keeps icon-like text masked after an escaped quote in a JSX attribute', async () => {
@@ -392,7 +392,7 @@ describe('localIcons source scanner edge cases', () => {
     ].join('\n')
     const out = await runLocalIcons(code)
     expect(out).toContain(
-      '`text ${<Icon name="close" url="./assets/tdesign-icons.js" loadDefaultIcons={false} />}`',
+      '`text ${<Icon name="close" url="/assets/tdesign-icons.js" loadDefaultIcons={false} />}`',
     )
   })
 
@@ -400,5 +400,46 @@ describe('localIcons source scanner edge cases', () => {
     const code = `import { Icon } from 'tdesign-icons-react'\nconst text = \`<Icon name="close" />\``
     const out = await runLocalIcons(code)
     expect(out).toBeNull()
+  })
+})
+
+describe('localIcons publicPath auto-detection', () => {
+  const code = `import { Icon } from 'tdesign-icons-react'
+export const A = () => <Icon name="sneer" />`
+
+  it('follows webpack output.publicPath when publicPath is not configured', async () => {
+    const plugin = unpluginFactory('react', { localIcons: true }) as any
+    plugin.webpack({ options: { output: { publicPath: '/my-app/' } } })
+    const result = (await plugin.transform.call({}, code, '/project/src/App.tsx')) as TransformResult
+    expect(result && result.code).toContain(`<Icon name="sneer" url="/my-app/assets/tdesign-icons.js" loadDefaultIcons={false} />`)
+  })
+
+  it('follows rspack output.publicPath when publicPath is not configured', async () => {
+    const plugin = unpluginFactory('react', { localIcons: true }) as any
+    plugin.rspack({ options: { output: { publicPath: '/my-app/' } } })
+    const result = (await plugin.transform.call({}, code, '/project/src/App.tsx')) as TransformResult
+    expect(result && result.code).toContain(`<Icon name="sneer" url="/my-app/assets/tdesign-icons.js" loadDefaultIcons={false} />`)
+  })
+
+  it('falls back to the root default when webpack publicPath is "auto"', async () => {
+    const plugin = unpluginFactory('react', { localIcons: true }) as any
+    plugin.webpack({ options: { output: { publicPath: 'auto' } } })
+    const result = (await plugin.transform.call({}, code, '/project/src/App.tsx')) as TransformResult
+    expect(result && result.code).toContain(`<Icon name="sneer" url="/assets/tdesign-icons.js" loadDefaultIcons={false} />`)
+  })
+
+  it('keeps an explicit publicPath even after compiler hooks run', async () => {
+    const plugin = unpluginFactory('react', { localIcons: { publicPath: './' } }) as any
+    plugin.webpack({ options: { output: { publicPath: '/my-app/' } } })
+    plugin.rspack({ options: { output: { publicPath: '/other/' } } })
+    const result = (await plugin.transform.call({}, code, '/project/src/App.tsx')) as TransformResult
+    expect(result && result.code).toContain(`<Icon name="sneer" url="./assets/tdesign-icons.js" loadDefaultIcons={false} />`)
+  })
+
+  it('follows the vite base reported by configResolved', async () => {
+    const plugin = unpluginFactory('react', { localIcons: true }) as any
+    plugin.vite.configResolved({ base: '/my-app/' })
+    const result = (await plugin.transform.call({}, code, '/project/src/App.tsx')) as TransformResult
+    expect(result && result.code).toContain(`<Icon name="sneer" url="/my-app/assets/tdesign-icons.js" loadDefaultIcons={false} />`)
   })
 })

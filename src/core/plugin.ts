@@ -1,8 +1,9 @@
 import { init } from 'es-module-lexer'
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import type { UnpluginBuildContext } from 'unplugin'
+import type { RspackCompiler, UnpluginBuildContext, WebpackCompiler } from 'unplugin'
 import type { Framework, FrameworkConfig, Options, ResolvedOptions } from '../types.ts'
 import {
+  applyPublicPathBase,
   downloadSprite,
   filterSprite,
   resolveDefaultSpriteSourceUrl,
@@ -58,6 +59,14 @@ export const unpluginFactory = (framework: Framework, options: Options = {}) => 
     framework === 'web-components'
       ? false
       : resolveLocalIconsOptions(options.localIcons, sourceUrl)
+  // 用户显式配置了 publicPath 时构建器 base 不再介入，始终以用户值为准
+  const explicitPublicPath =
+    typeof options.localIcons === 'object' && options.localIcons.publicPath !== undefined
+  const applyCompilerBase = (base: unknown) => {
+    if (!explicitPublicPath && resolved.localIcons && typeof base === 'string') {
+      applyPublicPathBase(resolved.localIcons, base)
+    }
+  }
   let localSpriteSource: string | undefined
   const getLocalSprite = async (): Promise<string> => {
     if (!localIcons) throw new Error('[unplugin-tdesign-icons] localIcons is not enabled')
@@ -102,6 +111,11 @@ export const unpluginFactory = (framework: Framework, options: Options = {}) => 
   const viteLocalIcons = resolved.localIcons
   const viteHooks = viteLocalIcons
     ? {
+        // 未显式配置 publicPath 时跟随 Vite base；configResolved 早于 configureServer
+        // 与 transform，此时原地更新 url 即可让注入与 dev 中间件同时生效。
+        configResolved(config: { base?: string }) {
+          applyCompilerBase(config.base)
+        },
         configureServer(server: {
           middlewares: {
             use: (
@@ -145,6 +159,15 @@ export const unpluginFactory = (framework: Framework, options: Options = {}) => 
       })
     },
     vite: viteHooks,
+    // webpack / rspack：未显式配置 publicPath 时跟随 output.publicPath。
+    // `apply` 阶段同步调用，先于任何 loader/transform；`'auto'` 与函数形式
+    // 只能在运行时确定，构建期跳过并回退 `/`。
+    webpack(compiler: WebpackCompiler) {
+      applyCompilerBase(compiler.options?.output?.publicPath)
+    },
+    rspack(compiler: RspackCompiler) {
+      applyCompilerBase(compiler.options?.output?.publicPath)
+    },
     // 判断某个文件是否需要进入转换流程
     transformInclude(id: string) {
       // 1. 后缀不在白名单内，跳过

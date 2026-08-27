@@ -24,8 +24,11 @@ export interface LocalIconsOptions {
    */
   fileName?: string
   /**
-   * 注入到 `Icon` 的 URL 前缀。非根路径部署时应与应用 public base 一致。
-   * @default './'
+   * 注入到 `Icon` 的 URL 前缀。未显式配置时自动跟随构建器的公开 base：
+   * Vite 读取 `base`，webpack / rspack 读取 `output.publicPath`；
+   * 无法感知（`'auto'`、rollup / rolldown / esbuild）时回退 `'/'`。
+   * 显式配置始终优先。
+   * @default '/'
    */
   publicPath?: string
 }

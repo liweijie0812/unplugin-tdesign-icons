@@ -1,12 +1,19 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { unpluginFactory } from '../src/core'
+import type { ResolvedLocalIconsOptions } from '../src/types'
 import {
+  applyPublicPathBase,
   downloadSprite,
   filterSprite,
   joinPublicPath,
   localizeSprite,
   resolveDefaultSpriteSourceUrl,
+  resolveLocalIconsOptions,
 } from '../src/core/sprite'
+
+function resolveOptions(options: { sourceUrl: string; fileName?: string }) {
+  return resolveLocalIconsOptions(options) as ResolvedLocalIconsOptions
+}
 
 const spriteSource = `(function () {
   var svgCode = '<svg><symbol id="t-icon-close"></symbol><symbol id="t-icon-add"></symbol></svg>'
@@ -84,5 +91,38 @@ describe('local svg-sprite asset', () => {
   it('joins relative and absolute public paths', () => {
     expect(joinPublicPath('./', 'assets/icons.js')).toBe('./assets/icons.js')
     expect(joinPublicPath('/console/', '/assets/icons.js')).toBe('/console/assets/icons.js')
+  })
+
+  it('defaults the sprite URL to the site root', () => {
+    const resolved = resolveOptions({ sourceUrl: 'https://cdn.test/icons.js' })
+    expect(resolved.url).toBe('/assets/tdesign-icons.js')
+  })
+
+  it('applies a builder base in place onto the resolved options', () => {
+    const resolved = resolveOptions({
+      sourceUrl: 'https://cdn.test/icons.js',
+      fileName: 'static/icons.js',
+    })
+    applyPublicPathBase(resolved, '/my-app/')
+    expect(resolved.publicPath).toBe('/my-app/')
+    expect(resolved.url).toBe('/my-app/static/icons.js')
+
+    // base without a trailing slash is normalized the same way
+    applyPublicPathBase(resolved, '/console')
+    expect(resolved.url).toBe('/console/static/icons.js')
+
+    // an absolute CDN base stays a full URL
+    applyPublicPathBase(resolved, 'https://cdn.example.com/app/')
+    expect(resolved.url).toBe('https://cdn.example.com/app/static/icons.js')
+  })
+
+  it('skips "auto" and empty bases so the root fallback stays', () => {
+    const resolved = resolveOptions({ sourceUrl: 'https://cdn.test/icons.js' })
+    applyPublicPathBase(resolved, 'auto')
+    expect(resolved.url).toBe('/assets/tdesign-icons.js')
+    applyPublicPathBase(resolved, undefined)
+    expect(resolved.url).toBe('/assets/tdesign-icons.js')
+    applyPublicPathBase(resolved, '')
+    expect(resolved.url).toBe('/assets/tdesign-icons.js')
   })
 })
